@@ -131,10 +131,7 @@
             <div class="p-8 space-y-4">
                 <p class="text-xs text-slate-500 leading-relaxed font-medium">
                     엑셀에서 <span class="text-indigo-600 font-bold">[이름 / 학생번호 / 학부모번호 / 과제 / 시험1 / 시험2 / 오답]</span> 순으로
-                    드래그
-                    복사하여
-                    아래에
-                    붙여넣으세요.<br>
+                    드래그 복사하여 아래에 붙여넣으세요.<br>
                     * 이름 + 학부모번호가 같은 학생은 기존 데이터를 업데이트합니다.
                 </p>
                 <textarea id="import-area"
@@ -221,8 +218,7 @@
                     <i data-lucide="graduation-cap" size="40"></i>
                 </div>
                 <h1 class="text-5xl font-black text-slate-800 tracking-tight">SmartAcademy <span
-                        class="text-indigo-600">Pro</span>
-                </h1>
+                        class="text-indigo-600">Pro</span></h1>
                 <p class="text-slate-400 font-bold uppercase tracking-widest text-sm">탐구 과목 통합 관리 시스템 v6.1 (LOCAL SAFE)
                 </p>
 
@@ -273,6 +269,8 @@
                             class="text-[10px] text-slate-400 font-black tracking-widest uppercase">SCHEDULE</p>
                     </div>
                 </div>
+
+                <!-- ✅ 탭 4개: 학생 / 모의고사 / 자동채점 / 퇴원생 -->
                 <div class="flex bg-slate-100 p-1 rounded-2xl shadow-inner">
                     <button onclick="switchTab('students')" id="tab-btn-students"
                         class="px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-white text-indigo-600 shadow-sm">학생
@@ -281,6 +279,8 @@
                         class="px-6 py-2.5 rounded-xl text-xs font-black transition-all text-slate-400">모의고사</button>
                     <button onclick="switchTab('grading')" id="tab-btn-grading"
                         class="px-6 py-2.5 rounded-xl text-xs font-black transition-all text-slate-400">자동 채점</button>
+                    <button onclick="switchTab('withdrawn')" id="tab-btn-withdrawn"
+                        class="px-6 py-2.5 rounded-xl text-xs font-black transition-all text-slate-400">퇴원생</button>
                 </div>
             </div>
         </nav>
@@ -489,6 +489,36 @@
                 </div>
             </div>
         </main>
+
+        <!-- ✅ 퇴원생 탭 -->
+        <main id="content-withdrawn" class="hidden max-w-[1600px] mx-auto w-full p-6 space-y-6">
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-slate-100 text-slate-600 p-3 rounded-2xl"><i data-lucide="archive"></i></div>
+                        <div>
+                            <h3 class="text-2xl font-black text-slate-800">퇴원생 목록</h3>
+                            <p class="text-xs text-slate-400 font-bold">단축키: Ctrl/Cmd + ; 로 열기/닫기</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-hidden border border-slate-100 rounded-3xl">
+                    <table class="w-full border-collapse">
+                        <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <tr>
+                                <th class="px-6 py-4 text-left w-40">이름</th>
+                                <th class="px-6 py-4 text-left w-52">학생 번호</th>
+                                <th class="px-6 py-4 text-left w-52">학부모 번호</th>
+                                <th class="px-6 py-4 text-left w-48">퇴원일</th>
+                                <th class="px-6 py-4 text-right">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="withdrawn-table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
 
     <!-- 수업 모달 -->
@@ -610,14 +640,10 @@
 
         let db = { classes: [], students: [] };
 
-        function safeParseJSON(text) {
-            try { return JSON.parse(text); } catch { return null; }
-        }
+        function safeParseJSON(text) { try { return JSON.parse(text); } catch { return null; } }
 
         function isValidDB(obj) {
-            return obj && typeof obj === 'object'
-                && Array.isArray(obj.classes)
-                && Array.isArray(obj.students);
+            return obj && typeof obj === 'object' && Array.isArray(obj.classes) && Array.isArray(obj.students);
         }
 
         function getUUID() {
@@ -692,6 +718,10 @@
                     else s.parentPhone = "";
                 }
                 if (typeof s.studentPhone !== 'string') s.studentPhone = "";
+
+                // ✅ 퇴원 플래그 기본값
+                if (typeof s.withdrawn !== 'boolean') s.withdrawn = false;
+                if (typeof s.withdrawnAt !== 'number') s.withdrawnAt = 0;
 
                 // 오염 케이스: 누군가 weeks에 번호를 넣어놨다면 최상단으로 회수
                 Object.values(s.weeks).forEach(w => {
@@ -788,10 +818,11 @@
                     id: getUUID(),
                     classId: cid,
                     name,
-                    // ✅ 샘플에도 학생/학부모 번호 전원 채움
                     studentPhone: randomPhone(),
                     parentPhone: randomPhone(),
                     phone: '',
+                    withdrawn: false,
+                    withdrawnAt: 0,
                     weeks: {},
                     mock: { june: 35 + Math.floor(Math.random() * 15), sept: 38 + Math.floor(Math.random() * 12) },
                     notes: '성실함.'
@@ -806,10 +837,7 @@
         // =============================
         function exportBackupJSON() {
             syncActiveInputs({ save: true });
-            const payload = {
-                meta: { exportedAt: Date.now(), version: APP_VERSION },
-                db
-            };
+            const payload = { meta: { exportedAt: Date.now(), version: APP_VERSION }, db };
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -899,6 +927,18 @@
             window.addEventListener('beforeunload', () => {
                 syncActiveInputs({ save: true });
             });
+
+            // ✅ 단축키: Ctrl(Win) / Cmd(Mac) + ; 로 퇴원생 탭 토글
+            document.addEventListener('keydown', (e) => {
+                const isCombo = (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.code === 'Semicolon';
+                if (!isCombo) return;
+
+                e.preventDefault();
+                if (!currentClassId) return showToast("수업을 먼저 선택하세요.");
+
+                const withdrawnVisible = !document.getElementById('content-withdrawn').classList.contains('hidden');
+                switchTab(withdrawnVisible ? 'students' : 'withdrawn');
+            });
         };
 
         // --- Confirm ---
@@ -949,7 +989,6 @@
                 const name = (cols[0] || "").trim();
                 const studentPhone = (cols[1] || "").trim();
                 const parentPhone = (cols[2] || "").trim();
-
                 if (!name) return;
 
                 const hw = cols[3] ? cols[3].trim() : '미제출';
@@ -977,6 +1016,10 @@
                     if (studentPhone) existing.studentPhone = studentPhone;
                     if (parentPhone) existing.parentPhone = parentPhone;
 
+                    // ✅ (편의) 퇴원생이 같은 키로 들어오면 자동 복원
+                    existing.withdrawn = false;
+                    existing.withdrawnAt = 0;
+
                     if (!existing.weeks) existing.weeks = {};
                     existing.weeks[currentWeek] = { homework: hw, exam1: e1, exam2: e2, incorrect: incor };
                     existing.phone = existing.parentPhone || existing.phone || "";
@@ -989,6 +1032,8 @@
                         studentPhone: studentPhone || "",
                         parentPhone: parentPhone || "",
                         phone: parentPhone || "",
+                        withdrawn: false,
+                        withdrawnAt: 0,
                         weeks: {},
                         mock: { june: 0, sept: 0 },
                         notes: ''
@@ -1048,7 +1093,7 @@
             totalWeeks = maxWeek;
             currentWeek = maxWeek;
             renderWeekSelector();
-            renderTable();
+            switchTab('students'); // ✅ 탭 상태 정렬까지 한번에
         }
 
         function saveClass() {
@@ -1080,7 +1125,12 @@
             const tbody = document.getElementById('student-table-body');
             const search = (document.getElementById('student-search')?.value || "").toLowerCase();
 
-            let filtered = db.students.filter(s => s.classId === currentClassId && (s.name || "").toLowerCase().includes(search));
+            // ✅ 재원생만(퇴원생 제외)
+            let filtered = db.students.filter(s =>
+                s.classId === currentClassId &&
+                !s.withdrawn &&
+                (s.name || "").toLowerCase().includes(search)
+            );
 
             filtered.sort((a, b) => {
                 let vA, vB;
@@ -1114,7 +1164,6 @@
                 class="edit-input w-full bg-transparent p-2 rounded-xl font-black text-indigo-600 outline-none cursor-help transition-all">
             </td>
 
-            <!-- ✅ 학생번호 / 학부모번호: 주차와 무관 (항상 동일) -->
             <td class="px-6 py-4">
               <input type="text" value="${escapeHtml(s.studentPhone || "")}"
                 data-sync="student" data-id="${escapeHtml(s.id)}" data-field="studentPhone"
@@ -1208,15 +1257,19 @@
         // --- 탭 ---
         function switchTab(t) {
             syncActiveInputs({ save: true });
-            ['students', 'mock', 'grading'].forEach(id => {
+
+            ['students', 'mock', 'grading', 'withdrawn'].forEach(id => {
                 document.getElementById('content-' + id).classList.toggle('hidden', id !== t);
                 document.getElementById('tab-btn-' + id).className = (id === t)
                     ? "px-6 py-2.5 rounded-xl text-xs font-black bg-white text-indigo-600 shadow-sm transition-all"
                     : "px-6 py-2.5 rounded-xl text-xs font-black text-slate-400 transition-all";
             });
+
             if (t === 'mock') renderMockTable();
             if (t === 'students') renderTable();
             if (t === 'grading') renderGradingTable();
+            if (t === 'withdrawn') renderWithdrawnTable();
+
             lucide.createIcons();
         }
 
@@ -1232,7 +1285,9 @@
             const tbody = document.getElementById('mock-table-body');
             if (!tbody) return;
 
-            const filtered = db.students.filter(s => s.classId === currentClassId);
+            // ✅ 퇴원생 제외
+            const filtered = db.students.filter(s => s.classId === currentClassId && !s.withdrawn);
+
             filtered.sort((a, b) => {
                 let vA, vB;
                 if (mockSortKey === 'name') { vA = a.name || ""; vB = b.name || ""; }
@@ -1259,13 +1314,17 @@
 
         // --- 자동 채점 ---
         function handleGradingSort() { gradingSortDir = gradingSortDir === 'asc' ? 'desc' : 'asc'; renderGradingTable(); }
+
         function loadStudentsToGrading() {
             syncActiveInputs({ save: true });
-            const cs = db.students.filter(s => s.classId === currentClassId);
+
+            // ✅ 퇴원생 제외
+            const cs = db.students.filter(s => s.classId === currentClassId && !s.withdrawn);
             gradingData = cs.map(s => ({ id: s.id, name: s.name, answers: Array(20).fill(''), score: 0, wrongs: 0 }));
             renderGradingTable();
             showToast("학생 명단을 불러왔습니다.");
         }
+
         function excludeFromGrading(id) { gradingData = gradingData.filter(d => d.id !== id); renderGradingTable(); }
 
         function renderGradingTable() {
@@ -1455,19 +1514,21 @@
             document.getElementById('modal-mock-june').innerText = s.mock?.june ? s.mock.june + "점" : "-";
             document.getElementById('modal-mock-sept').innerText = s.mock?.sept ? s.mock.sept + "점" : "-";
 
+            // ✅ 삭제가 아니라 '퇴원생 탭으로 이동'
             document.getElementById('withdraw-trigger-btn').onclick = () => openConfirm(
                 "퇴원 처리",
-                `[${s.name}] 학생의 모든 기록을 삭제하시겠습니까?`,
+                `[${s.name}] 학생을 퇴원생으로 이동할까요?\n(데이터는 삭제되지 않고 '퇴원생' 탭에서 관리됩니다.)`,
                 () => {
-                    db.students = db.students.filter(x => x.id !== id);
+                    s.withdrawn = true;
+                    s.withdrawnAt = Date.now();
                     saveDB();
                     closeModal();
                     renderTable();
-                    showToast("퇴원 처리되었습니다.");
+                    showToast("퇴원생 탭으로 이동되었습니다.");
                 }
             );
 
-            const classStudents = db.students.filter(x => x.classId === currentClassId);
+            const classStudents = db.students.filter(x => x.classId === currentClassId && !x.withdrawn);
 
             let totalS = 0, hwC = 0, attC = 0, validW = 0;
             let sTrend = [], cTrend = [];
@@ -1547,6 +1608,8 @@
                 studentPhone: '',
                 parentPhone: '',
                 phone: '',
+                withdrawn: false,
+                withdrawnAt: 0,
                 weeks: {},
                 mock: { june: 0, sept: 0 },
                 notes: ''
@@ -1667,7 +1730,6 @@
          * - 'both'   : (이름+학생번호+...)\n(이름+학부모번호+...)를 이어서 복사
          */
         async function copyForPpurio(mode = 'parent') {
-            // ✅ 현재 입력 중인 값까지 강제로 DB 반영
             syncActiveInputs({ save: true });
 
             if (document.activeElement && typeof document.activeElement.blur === 'function') {
@@ -1679,7 +1741,8 @@
 
             if (!currentClassId) return showToast("수업을 먼저 선택하세요.");
 
-            const students = db.students.filter(s => s.classId === currentClassId);
+            // ✅ 퇴원생 제외
+            const students = db.students.filter(s => s.classId === currentClassId && !s.withdrawn);
             if (!students.length) return showToast("복사할 학생이 없습니다.");
 
             let lines = [];
@@ -1719,6 +1782,90 @@
 
             const label = mode === 'student' ? '학생' : (mode === 'parent' ? '학부모' : '학생+학부모');
             showToast(`뿌리오용 복사 완료 (${label} ${count}건)`);
+        }
+
+        // =============================
+        // ✅ 퇴원생 탭 기능
+        // =============================
+        function formatDate(ts) {
+            if (!ts) return "-";
+            const d = new Date(ts);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        // ✅ 수정된 renderWithdrawnTable 함수
+        function renderWithdrawnTable() {
+            const tbody = document.getElementById('withdrawn-table-body');
+            if (!tbody) return;
+
+            const list = db.students
+                .filter(s => s.classId === currentClassId && s.withdrawn)
+                .sort((a, b) => (b.withdrawnAt || 0) - (a.withdrawnAt || 0));
+
+            tbody.innerHTML = list.map(s => `
+        <tr class="hover:bg-slate-50/80 transition-all group">
+          <td class="px-6 py-4 font-black text-slate-800 cursor-help hover:text-indigo-600 transition-colors" 
+              title="더블클릭하여 상세 정보 보기"
+              ondblclick="openStudentCard('${s.id}')">
+            ${escapeHtml(s.name || "")}
+          </td>
+          <td class="px-6 py-4 text-slate-700 font-bold">${escapeHtml(s.studentPhone || "")}</td>
+          <td class="px-6 py-4 text-slate-500 font-bold">${escapeHtml(s.parentPhone || "")}</td>
+          <td class="px-6 py-4 text-slate-400 font-bold">${formatDate(s.withdrawnAt)}</td>
+          <td class="px-6 py-4">
+            <div class="flex justify-end gap-2">
+              <button onclick="restoreStudent('${s.id}')"
+                class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black hover:bg-emerald-700 flex items-center gap-2">
+                <i data-lucide="rotate-ccw" size="14"></i> 복원
+              </button>
+              <button onclick="deleteStudentForever('${s.id}')"
+                class="px-4 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-xs font-black hover:bg-rose-100 flex items-center gap-2">
+                <i data-lucide="trash-2" size="14"></i> 영구삭제
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+            lucide.createIcons();
+        }
+
+        function restoreStudent(id) {
+            const s = db.students.find(x => x.id === id);
+            if (!s) return;
+
+            openConfirm(
+                "복원",
+                `[${s.name}] 학생을 다시 재원생으로 복원할까요?`,
+                () => {
+                    s.withdrawn = false;
+                    s.withdrawnAt = 0;
+                    saveDB();
+                    renderWithdrawnTable();
+                    renderTable();
+                    showToast("복원 완료");
+                }
+            );
+        }
+
+        function deleteStudentForever(id) {
+            const s = db.students.find(x => x.id === id);
+            if (!s) return;
+
+            openConfirm(
+                "영구 삭제",
+                `[${s.name}] 학생 데이터를 완전히 삭제할까요?\n(되돌릴 수 없습니다.)`,
+                () => {
+                    db.students = db.students.filter(x => x.id !== id);
+                    saveDB();
+                    renderWithdrawnTable();
+                    renderTable();
+                    showToast("영구 삭제 완료");
+                }
+            );
         }
     </script>
 </body>
