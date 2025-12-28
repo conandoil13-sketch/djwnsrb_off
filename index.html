@@ -691,6 +691,13 @@
                 if (typeof s.notes !== 'string') s.notes = "";
                 return s;
             });
+            db.classes = (db.classes || []).map(c => {
+                if (!c || typeof c !== 'object') return c;
+                if (!Number.isFinite(c.weekCount) || c.weekCount < 1) {
+                    c.weekCount = inferWeekCountForClass(c.id);
+                }
+                return c;
+            });
         }
 
         function saveDBImmediate() {
@@ -717,7 +724,7 @@
 
         function generateSampleData() {
             const cid = 'c-sample';
-            db.classes = [{ id: cid, name: '예시 수업반', schedule: '토요일 09:30' }];
+            db.classes = [{ id: cid, name: '예시 수업반', schedule: '토요일 09:30', weekCount: 1 }];
             db.students = [{ id: getUUID(), classId: cid, name: '예시학생', studentPhone: '010-0000-0000', parentPhone: '010-1111-1111', withdrawn: false, withdrawnAt: 0, weeks: { 1: { homework: '제출', exam1: 45, exam2: 48, incorrect: '' } }, mock: { june: 45, sept: 48 }, notes: '성실함' }];
         }
 
@@ -746,15 +753,35 @@
 
         // 2. 마지막 주차 삭제
         function removeLastWeek() {
-            if (totalWeeks <= 1) return showToast("삭제할 주차가 없습니다.");
-            openConfirm("주차 삭제", `현재 가장 마지막 주차인 ${totalWeeks}주차를 삭제하시겠습니까?\n해당 주차에 입력된 데이터는 복구할 수 없습니다.`, () => {
-                totalWeeks--;
-                if (currentWeek > totalWeeks) currentWeek = totalWeeks;
-                renderWeekSelector();
-                renderTable();
-                showToast(`${totalWeeks + 1}주차 삭제 완료`);
-            });
+            const cls = getActiveClassObj();
+            if (!cls) return;
+
+            if ((Number(cls.weekCount) || 1) <= 1) return showToast("삭제할 주차가 없습니다.");
+
+            const delWeek = cls.weekCount;
+
+            openConfirm("주차 삭제",
+                `현재 가장 마지막 주차인 ${delWeek}주차를 삭제하시겠습니까?\n해당 주차에 입력된 데이터는 복구할 수 없습니다.`,
+                () => {
+                    // ✅ 해당 수업 학생들의 delWeek 데이터 실제 삭제
+                    db.students
+                        .filter(s => s.classId === currentClassId)
+                        .forEach(s => {
+                            if (s.weeks && typeof s.weeks === 'object') delete s.weeks[delWeek];
+                        });
+
+                    cls.weekCount = delWeek - 1;
+                    totalWeeks = cls.weekCount;
+                    currentWeek = Math.min(currentWeek, totalWeeks);
+
+                    saveDB(); // ✅ 저장
+                    renderWeekSelector();
+                    renderTable();
+                    showToast(`${delWeek}주차 삭제 완료`);
+                }
+            );
         }
+
 
         // 3. 뿌리오 복사 로직 수정 (학생+학부모 둘다 발송 대응)
         async function copyForPpurio(mode = 'parent') {
@@ -815,10 +842,17 @@
             document.getElementById('class-selection').classList.add('hidden');
             document.getElementById('main-dashboard').classList.remove('hidden');
 
-            const classStudents = db.students.filter(s => s.classId === id);
-            let maxW = 1;
-            classStudents.forEach(s => { const ws = Object.keys(s.weeks).map(Number); if (ws.length) maxW = Math.max(maxW, ...ws); });
-            totalWeeks = maxW; currentWeek = maxW;
+            const cls2 = db.classes.find(c => c.id === id);
+
+            // weekCount가 없으면 "의미 있는 주차" 기준으로 복구
+            if (!Number.isFinite(cls2.weekCount) || cls2.weekCount < 1) {
+                cls2.weekCount = inferWeekCountForClass(id);
+                saveDBImmediate();
+            }
+
+            totalWeeks = cls2.weekCount;
+            currentWeek = cls2.weekCount;
+
             renderWeekSelector();
             switchTab('students');
         }
@@ -953,7 +987,34 @@
                     <td class="px-6 py-4"><input type="number" value="${s.mock.june}" onchange="updateMock('${s.id}', 'june', this.value)" class="w-full text-center py-3 bg-slate-50 rounded-xl font-black outline-none"></td>
                     <td class="px-6 py-4"><input type="number" value="${s.mock.sept}" onchange="updateMock('${s.id}', 'sept', this.value)" class="w-full text-center py-3 bg-slate-50 rounded-xl font-black outline-none"></td>
                 </tr>`).join('');
+        } function getActiveClassObj() {
+            return db.classes.find(c => c.id === currentClassId);
         }
+
+        function isMeaningfulWeekData(d) {
+            if (!d) return false;
+            const hwMeaning = d.homework && d.homework !== '미제출'; // 기본값은 의미없음
+            const e1 = Number(d.exam1 || 0);
+            const e2 = Number(d.exam2 || 0);
+            const inc = (d.incorrect || "").trim();
+            return hwMeaning || e1 !== 0 || e2 !== 0 || inc !== "";
+        }
+
+        // 기존 DB(weekCount 없음) 복구용: "의미 있는 데이터"가 있는 주차까지만 max로 잡음
+        function inferWeekCountForClass(classId) {
+            const students = db.students.filter(s => s.classId === classId);
+            let maxW = 1;
+            students.forEach(s => {
+                const weeksObj = s.weeks && typeof s.weeks === 'object' ? s.weeks : {};
+                Object.entries(weeksObj).forEach(([wk, data]) => {
+                    const n = Number(wk);
+                    if (!Number.isFinite(n)) return;
+                    if (isMeaningfulWeekData(data)) maxW = Math.max(maxW, n);
+                });
+            });
+            return Math.max(1, maxW);
+        }
+
 
         // --- 보조 함수들 ---
         function switchTab(t) {
@@ -980,7 +1041,23 @@
         function closeClassModal() { document.getElementById('class-modal').classList.add('hidden'); }
         function openClassModal(id = null) { editingClassId = id; document.getElementById('class-modal').classList.remove('hidden'); if (id) { const c = db.classes.find(x => x.id === id); document.getElementById('modal-input-name').value = c.name; document.getElementById('modal-input-schedule').value = c.schedule; } else { document.getElementById('modal-input-name').value = ""; document.getElementById('modal-input-schedule').value = ""; } }
         function exitToClassSelection() { document.getElementById('main-dashboard').classList.add('hidden'); document.getElementById('class-selection').classList.remove('hidden'); renderClassSelection(); }
-        function saveClass() { const n = document.getElementById('modal-input-name').value, s = document.getElementById('modal-input-schedule').value; if (!n) return; if (editingClassId) { const c = db.classes.find(x => x.id === editingClassId); c.name = n; c.schedule = s; } else { db.classes.push({ id: 'c-' + getUUID(), name: n, schedule: s }); } saveDB(); closeClassModal(); renderClassSelection(); }
+        function saveClass() {
+            const n = document.getElementById('modal-input-name').value,
+                s = document.getElementById('modal-input-schedule').value;
+            if (!n) return;
+
+            if (editingClassId) {
+                const c = db.classes.find(x => x.id === editingClassId);
+                c.name = n;
+                c.schedule = s;
+                // weekCount는 유지
+            } else {
+                db.classes.push({ id: 'c-' + getUUID(), name: n, schedule: s, weekCount: 1 }); // ✅
+            }
+            saveDB();
+            closeClassModal();
+            renderClassSelection();
+        }
         function triggerDeleteClass(id, e) { e.stopPropagation(); openConfirm("수업 삭제", "해당 수업의 모든 학생 데이터가 삭제됩니다.", () => { db.classes = db.classes.filter(x => x.id !== id); db.students = db.students.filter(x => x.classId !== id); saveDB(); renderClassSelection(); }); }
         function openHwMenu(el, id) { activeHwStudentId = id; const m = document.getElementById('hw-selector-menu'); const r = el.getBoundingClientRect(); m.style.display = 'flex'; m.style.top = (r.bottom + window.scrollY + 5) + 'px'; m.style.left = (r.left + window.scrollX) + 'px'; }
         function setHomeworkStatus(s) { const st = db.students.find(x => x.id === activeHwStudentId); if (!st.weeks[currentWeek]) st.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' }; st.weeks[currentWeek].homework = s; document.getElementById('hw-selector-menu').style.display = 'none'; saveDB(); renderTable(); }
@@ -991,7 +1068,22 @@
         function renderWeekSelector() { const s = document.getElementById('week-selector'); s.innerHTML = Array.from({ length: totalWeeks }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentWeek ? 'selected' : ''}>주차 ${i + 1}</option>`).join(''); }
         function jumpToWeek(v) { syncActiveInputs(); currentWeek = parseInt(v); renderTable(); }
         function changeWeek(d) { syncActiveInputs(); const next = Math.max(1, Math.min(totalWeeks, currentWeek + d)); currentWeek = next; renderWeekSelector(); renderTable(); }
-        function addNewWeek() { syncActiveInputs(); totalWeeks++; currentWeek = totalWeeks; renderWeekSelector(); renderTable(); showToast(totalWeeks + "주차 생성"); }
+        function addNewWeek() {
+            syncActiveInputs();
+
+            const cls = getActiveClassObj();
+            if (!cls) return;
+
+            cls.weekCount = (Number(cls.weekCount) || 1) + 1;
+            totalWeeks = cls.weekCount;
+            currentWeek = totalWeeks;
+
+            saveDB(); // ✅ 저장
+            renderWeekSelector();
+            renderTable();
+            showToast(totalWeeks + "주차 생성");
+        }
+
         function openTransferModal() { syncActiveInputs(); if (!gradingData.length) return showToast("채점 데이터가 없습니다."); document.getElementById('transfer-week-select').innerHTML = Array.from({ length: totalWeeks }, (_, i) => `<option value="${i + 1}">주차 ${i + 1}</option>`).join(''); document.getElementById('transfer-modal').classList.remove('hidden'); }
         function closeTransferModal() { document.getElementById('transfer-modal').classList.add('hidden'); }
         function setTransferTarget(t) { transferTarget = t; document.getElementById('btn-target-exam1').className = t === 'exam1' ? "flex-1 py-3 bg-emerald-600 text-white rounded-xl font-black text-sm" : "flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm"; document.getElementById('btn-target-exam2').className = t === 'exam2' ? "flex-1 py-3 bg-emerald-600 text-white rounded-xl font-black text-sm" : "flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm"; }
