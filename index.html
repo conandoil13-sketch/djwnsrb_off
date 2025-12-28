@@ -2,8 +2,8 @@
 <html lang="ko">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SmartAcademy Pro - Ultimate Master Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -98,15 +98,18 @@
         class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-6 shadow-2xl animate-in zoom-in-95">
             <div class="text-center space-y-2">
-                <div id="confirm-icon-bg" class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4"><i
-                        id="confirm-icon" data-lucide="alert-triangle"></i></div>
+                <div id="confirm-icon-bg" class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4">
+                    <i id="confirm-icon" data-lucide="alert-triangle"></i>
+                </div>
                 <h3 id="confirm-title" class="text-xl font-black text-slate-800">확인</h3>
                 <p id="confirm-message" class="text-sm text-slate-500 font-medium whitespace-pre-line"></p>
             </div>
-            <div class="flex gap-3"><button onclick="closeConfirm()"
-                    class="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-bold">취소</button><button
-                    id="confirm-action-btn"
-                    class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black">확인</button></div>
+            <div class="flex gap-3">
+                <button onclick="closeConfirm()"
+                    class="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-bold">취소</button>
+                <button id="confirm-action-btn"
+                    class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black">확인</button>
+            </div>
         </div>
     </div>
 
@@ -120,7 +123,7 @@
                     <div class="bg-indigo-50 text-indigo-600 p-3 rounded-2xl"><i data-lucide="file-text"></i></div>
                     <div>
                         <h3 class="text-xl font-black text-slate-800">엑셀 일괄 가져오기</h3>
-                        <p class="text-xs text-slate-400 font-bold">현재 주차(${currentWeek}주차) 데이터로 입력됩니다.</p>
+                        <p id="import-week-hint" class="text-xs text-slate-400 font-bold">현재 주차 데이터로 입력됩니다.</p>
                     </div>
                 </div>
                 <button onclick="closeImportModal()" class="text-slate-400"><i data-lucide="x"></i></button>
@@ -128,7 +131,8 @@
             <div class="p-8 space-y-4">
                 <p class="text-xs text-slate-500 leading-relaxed font-medium">
                     엑셀에서 <span class="text-indigo-600 font-bold">[이름 / 휴대전화 / 과제 / 시험1 / 시험2 / 오답]</span> 순으로 드래그 복사하여
-                    아래에 붙여넣으세요.<br>
+                    아래에
+                    붙여넣으세요.<br>
                     * 이름과 번호가 같은 학생은 기존 데이터를 업데이트합니다.
                 </p>
                 <textarea id="import-area"
@@ -152,7 +156,8 @@
             <div class="text-center space-y-2">
                 <div
                     class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl mx-auto flex items-center justify-center mb-4">
-                    <i data-lucide="database"></i></div>
+                    <i data-lucide="database"></i>
+                </div>
                 <h3 class="text-xl font-black text-slate-800">시험 결과로 전송</h3>
                 <p class="text-sm text-slate-400 font-medium text-center">채점된 50점 만점 총점을<br>학생부 시트로 보냅니다.</p>
             </div>
@@ -166,10 +171,12 @@
                         class="flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm">시험 2</button>
                 </div>
             </div>
-            <div class="flex gap-3 pt-2"><button onclick="closeTransferModal()"
-                    class="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-bold">취소</button><button
-                    onclick="executeTransfer()"
-                    class="flex-1 py-3 bg-slate-900 text-white rounded-xl font-black shadow-lg">전송하기</button></div>
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeTransferModal()"
+                    class="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-bold">취소</button>
+                <button onclick="executeTransfer()"
+                    class="flex-1 py-3 bg-slate-900 text-white rounded-xl font-black shadow-lg">전송하기</button>
+            </div>
         </div>
     </div>
 
@@ -191,18 +198,41 @@
             <div class="text-center space-y-4">
                 <div
                     class="bg-indigo-600 w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl mb-6">
-                    <i data-lucide="graduation-cap" size="40"></i></div>
-                <h1 class="text-5xl font-black text-slate-800 tracking-tight">SmartAcademy <span
-                        class="text-indigo-600">Pro</span></h1>
-                <p class="text-slate-400 font-bold uppercase tracking-widest text-sm">탐구 과목 통합 관리 시스템 v6.0</p>
-                <div class="flex gap-4 justify-center mt-8">
-                    <button onclick="openClassModal()"
-                        class="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg hover:bg-indigo-700 transition-all flex items-center gap-2"><i
-                            data-lucide="plus"></i> 새 수업 등록</button>
-                    <button onclick="triggerResetData()"
-                        class="px-8 py-4 bg-white text-rose-500 border border-rose-100 rounded-2xl font-black hover:bg-rose-50 transition-all text-sm uppercase tracking-widest">데이터
-                        초기화</button>
+                    <i data-lucide="graduation-cap" size="40"></i>
                 </div>
+                <h1 class="text-5xl font-black text-slate-800 tracking-tight">SmartAcademy <span
+                        class="text-indigo-600">Pro</span>
+                </h1>
+                <p class="text-slate-400 font-bold uppercase tracking-widest text-sm">탐구 과목 통합 관리 시스템 v6.1 (LOCAL SAFE)
+                </p>
+
+                <div class="flex flex-wrap gap-4 justify-center mt-8">
+                    <button onclick="openClassModal()"
+                        class="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg hover:bg-indigo-700 transition-all flex items-center gap-2">
+                        <i data-lucide="plus"></i> 새 수업 등록
+                    </button>
+
+                    <button onclick="exportBackupJSON()"
+                        class="px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-2xl font-black hover:bg-slate-50 transition-all flex items-center gap-2">
+                        <i data-lucide="download"></i> 백업 내보내기(JSON)
+                    </button>
+
+                    <button onclick="triggerImportBackupJSON()"
+                        class="px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-2xl font-black hover:bg-slate-50 transition-all flex items-center gap-2">
+                        <i data-lucide="upload"></i> 백업 불러오기(JSON)
+                    </button>
+
+                    <button onclick="triggerResetData()"
+                        class="px-8 py-4 bg-white text-rose-500 border border-rose-100 rounded-2xl font-black hover:bg-rose-50 transition-all text-sm uppercase tracking-widest">
+                        데이터 초기화
+                    </button>
+
+                    <input id="backup-file-input" type="file" accept="application/json" class="hidden" />
+                </div>
+
+                <p class="text-xs text-slate-400 font-bold mt-2">
+                    * 로컬 저장(브라우저) 방식입니다. 브라우저 데이터 삭제/시크릿 모드/저장공간 부족 시 데이터가 사라질 수 있어요 → “백업 내보내기”를 자주 쓰는 게 가장 안전합니다.
+                </p>
             </div>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="class-list"></div>
         </div>
@@ -214,8 +244,9 @@
             <div class="max-w-[1600px] mx-auto px-6 h-20 flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <button onclick="exitToClassSelection()"
-                        class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400"><i
-                            data-lucide="chevron-left"></i></button>
+                        class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
                     <div>
                         <h2 id="active-class-name" class="font-black text-xl text-slate-800 tracking-tight">수업명</h2>
                         <p id="active-class-schedule"
@@ -262,9 +293,9 @@
                     <button onclick="toggleCopyMode()" id="copy-mode-btn"
                         class="flex items-center gap-2 px-5 py-2.5 border border-slate-200 rounded-2xl text-xs font-black hover:bg-white bg-slate-50 transition-all"><i
                             data-lucide="layers"></i> <span id="copy-btn-text">복사 모드</span></button>
-                    <div class="relative"><i data-lucide="search" class="absolute left-3 top-3 text-slate-400"
-                            size="14"></i><input type="text" id="student-search" oninput="renderTable()"
-                            placeholder="이름 검색..."
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-3 top-3 text-slate-400" size="14"></i>
+                        <input type="text" id="student-search" oninput="renderTable()" placeholder="이름 검색..."
                             class="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 w-32 transition-all">
                     </div>
                     <button onclick="addNewStudent()"
@@ -272,6 +303,7 @@
                             data-lucide="user-plus" size="16"></i> 학생 추가</button>
                 </div>
             </div>
+
             <div id="table-container"
                 class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden overflow-x-auto custom-scrollbar">
                 <table class="w-full border-collapse" id="main-table">
@@ -359,6 +391,7 @@
                                 data-lucide="send" size="16"></i> 시험 결과로 입력</button>
                     </div>
                 </div>
+
                 <div class="overflow-x-auto pb-4 custom-scrollbar">
                     <table class="w-full border-collapse min-w-[1000px] text-center text-sm">
                         <tbody>
@@ -366,16 +399,25 @@
                                 <td
                                     class="p-3 border border-slate-200 text-[10px] font-black text-slate-400 uppercase w-20">
                                     정답</td>
-                                <script>for (let i = 1; i <= 20; i++) document.write(`<td class="p-1 border border-slate-200"><input type="text" id="ans-${i}" class="w-full text-center py-2 font-black text-indigo-600 bg-white border border-slate-200 rounded-lg outline-none" maxLength="1"></td>`);</script>
+                                <script>
+                                    for (let i = 1; i <= 20; i++) {
+                                        document.write(`<td class="p-1 border border-slate-200"><input type="text" id="ans-${i}" class="w-full text-center py-2 font-black text-indigo-600 bg-white border border-slate-200 rounded-lg outline-none" maxLength="1"></td>`);
+                                    }
+                                </script>
                             </tr>
                             <tr>
                                 <td class="p-3 border border-slate-200 text-[10px] font-black text-slate-400 uppercase">
                                     배점</td>
-                                <script>for (let i = 1; i <= 20; i++) document.write(`<td class="p-1 border border-slate-200"><select id="pt-${i}" class="w-full text-center py-2 text-xs font-bold bg-white border border-slate-100 rounded-lg outline-none"><option value="2">2</option><option value="3" selected>3</option></select></td>`);</script>
+                                <script>
+                                    for (let i = 1; i <= 20; i++) {
+                                        document.write(`<td class="p-1 border border-slate-200"><select id="pt-${i}" class="w-full text-center py-2 text-xs font-bold bg-white border border-slate-100 rounded-lg outline-none"><option value="2">2</option><option value="3" selected>3</option></select></td>`);
+                                    }
+                                </script>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+
                 <div
                     class="bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden overflow-x-auto custom-scrollbar">
                     <table class="w-full border-collapse min-w-[1200px]" id="grading-table">
@@ -387,7 +429,9 @@
                                     <div class="flex items-center justify-center gap-1 cursor-pointer">이름 <i
                                             data-lucide="arrow-up-down" size="10"></i></div>
                                 </th>
-                                <script>for (let i = 1; i <= 20; i++) document.write(`<th class="p-2 border-r border-slate-700">${i}</th>`);</script>
+                                <script>
+                                    for (let i = 1; i <= 20; i++) document.write(`<th class="p-2 border-r border-slate-700">${i}</th>`);
+                                </script>
                                 <th class="px-6 py-4 bg-indigo-500">총점 (50)</th>
                                 <th class="px-6 py-4 bg-rose-500">오답</th>
                             </tr>
@@ -395,6 +439,7 @@
                         <tbody id="grading-body" class="divide-y divide-slate-200"></tbody>
                     </table>
                 </div>
+
                 <div class="flex items-center justify-around bg-slate-900 text-white p-8 rounded-3xl shadow-2xl mt-4">
                     <div class="text-center">
                         <p class="text-slate-500 text-[10px] font-black uppercase mb-1">응시자 수</p>
@@ -422,24 +467,28 @@
         class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95">
             <div class="p-8 border-b border-slate-100 flex justify-between items-center">
-                <h2 id="class-modal-title" class="text-2xl font-black text-slate-800 tracking-tight">수업 정보</h2><button
-                    onclick="closeClassModal()" class="text-slate-300 hover:text-slate-500 transition-colors"><i
+                <h2 id="class-modal-title" class="text-2xl font-black text-slate-800 tracking-tight">수업 정보</h2>
+                <button onclick="closeClassModal()" class="text-slate-300 hover:text-slate-500 transition-colors"><i
                         data-lucide="x"></i></button>
             </div>
             <div class="p-8 space-y-4">
-                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-2">수업명</label><input
-                        type="text" id="modal-input-name"
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">수업명</label>
+                    <input type="text" id="modal-input-name"
                         class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                 </div>
-                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-2">시간 정보</label><input
-                        type="text" id="modal-input-schedule" placeholder="토요일 09:30"
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">시간 정보</label>
+                    <input type="text" id="modal-input-schedule" placeholder="토요일 09:30"
                         class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                 </div>
             </div>
-            <div class="p-8 bg-slate-50 flex gap-3"><button onclick="closeClassModal()"
-                    class="flex-1 py-4 bg-white text-slate-400 rounded-xl font-bold border border-slate-200 hover:bg-slate-50 transition-all">취소</button><button
-                    onclick="saveClass()"
-                    class="flex-1 py-4 bg-indigo-600 text-white rounded-xl font-black shadow-lg">저장</button></div>
+            <div class="p-8 bg-slate-50 flex gap-3">
+                <button onclick="closeClassModal()"
+                    class="flex-1 py-4 bg-white text-slate-400 rounded-xl font-bold border border-slate-200 hover:bg-slate-50 transition-all">취소</button>
+                <button onclick="saveClass()"
+                    class="flex-1 py-4 bg-indigo-600 text-white rounded-xl font-black shadow-lg">저장</button>
+            </div>
         </div>
     </div>
 
@@ -450,8 +499,9 @@
             class="bg-white w-full max-w-4xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95">
             <div class="p-10 border-b border-slate-100 flex justify-between items-start bg-indigo-50/30">
                 <div class="flex items-center gap-6">
-                    <div class="bg-white p-5 rounded-[2rem] text-indigo-600 shadow-xl border border-indigo-50"><i
-                            data-lucide="user" size="40"></i></div>
+                    <div class="bg-white p-5 rounded-[2rem] text-indigo-600 shadow-xl border border-indigo-50">
+                        <i data-lucide="user" size="40"></i>
+                    </div>
                     <div>
                         <h2 id="modal-student-name" class="text-4xl font-black text-slate-800 tracking-tight">이름</h2>
                         <p id="modal-student-info"
@@ -467,6 +517,7 @@
                             data-lucide="x" size="32"></i></button>
                 </div>
             </div>
+
             <div class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
                 <div class="grid grid-cols-3 gap-6">
                     <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 text-center">
@@ -482,6 +533,7 @@
                         <p id="modal-hw-rate" class="text-3xl font-black text-emerald-600">0%</p>
                     </div>
                 </div>
+
                 <div class="grid grid-cols-2 gap-6 bg-amber-50 p-6 rounded-[2rem] border border-amber-100">
                     <div>
                         <p class="text-amber-600 text-[10px] font-black uppercase mb-1 tracking-widest">6월 모의고사 (50)</p>
@@ -492,56 +544,260 @@
                         <p id="modal-mock-sept" class="text-xl font-black text-slate-800">-</p>
                     </div>
                 </div>
+
                 <div class="space-y-6">
                     <h3 class="font-black text-slate-800 text-xl tracking-tight flex items-center gap-2"><i
                             data-lucide="line-chart" size="20" class="text-indigo-600"></i> 성적 추이 (본인 vs 반 평균)</h3>
-                    <div class="h-64 bg-slate-50 rounded-[2rem] border border-slate-100 relative p-8"><svg
-                            id="trend-svg" class="w-full h-full overflow-visible"></svg></div>
+                    <div class="h-64 bg-slate-50 rounded-[2rem] border border-slate-100 relative p-8">
+                        <svg id="trend-svg" class="w-full h-full overflow-visible"></svg>
+                    </div>
                 </div>
+
                 <div class="space-y-4">
-                    <h3 class="font-black text-slate-800 text-xl flex items-center gap-2"><i data-lucide="sticky-note"
-                            size="20" class="text-amber-500"></i> 관리 비고 및 상담 기록</h3>
+                    <h3 class="font-black text-slate-800 text-xl flex items-center gap-2">
+                        <i data-lucide="sticky-note" size="20" class="text-amber-500"></i> 관리 비고 및 상담 기록
+                    </h3>
                     <textarea id="modal-notes" oninput="saveNotes()"
                         class="w-full h-32 p-6 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm outline-none resize-none focus:ring-4 focus:ring-indigo-100 transition-all shadow-inner"></textarea>
                 </div>
             </div>
-            <div class="p-8 bg-slate-50/50 text-center border-t border-slate-100"><button onclick="closeModal()"
+
+            <div class="p-8 bg-slate-50/50 text-center border-t border-slate-100">
+                <button onclick="closeModal()"
                     class="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-lg active:scale-95 transition-all">관리
-                    카드 닫기</button></div>
+                    카드 닫기</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- 데이터 시스템 ---
-        const STORAGE_KEY = 'ACADEMY_MASTER_V6_STORAGE';
+        // =============================
+        // 안정성 강화: 로컬 저장 시스템
+        // =============================
+        const STORAGE_KEY = 'ACADEMY_MASTER_V6_STORAGE'; // ✅ 너가 준 키 그대로 유지
+        const BACKUP_KEY = STORAGE_KEY + '__BACKUP';
+        const META_KEY = STORAGE_KEY + '__META';
+        const APP_VERSION = '6.1.0';
+
         let db = { classes: [], students: [] };
-        function loadDB() { const saved = localStorage.getItem(STORAGE_KEY); if (saved) db = JSON.parse(saved); else generateSampleData(); }
-        function saveDB() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
-        function generateSampleData() {
-            const cid = 'c-sample'; db.classes = [{ id: cid, name: '수능 만점 정규반 (토)', schedule: 'SAT 09:30 - 13:00' }];
-            const names = ['김민준', '이서윤', '박도윤', '최지우', '정예준', '강하윤', '조현우', '윤서아', '장준서', '임다은', '한지후', '오지민', '서지안', '신채원', '권도경', '황은우', '안서현', '송민지', '유승우', '전하율'];
-            db.students = names.map((name, idx) => {
-                const s = { id: Date.now() + idx, classId: cid, name, phone: `010-${1000 + Math.floor(Math.random() * 8000)}-${1000 + Math.floor(Math.random() * 8000)}`, weeks: {}, mock: { june: 35 + Math.floor(Math.random() * 15), sept: 38 + Math.floor(Math.random() * 12) }, notes: '성실함.' };
-                for (let w = 1; w <= 10; w++) s.weeks[w] = { homework: Math.random() > 0.1 ? '제출' : '미제출', exam1: 30 + Math.floor(Math.random() * 20), exam2: 32 + Math.floor(Math.random() * 18), incorrect: '' };
-                return s;
-            }); saveDB();
+
+        function safeParseJSON(text) {
+            try { return JSON.parse(text); } catch { return null; }
         }
 
+        function isValidDB(obj) {
+            return obj && typeof obj === 'object'
+                && Array.isArray(obj.classes)
+                && Array.isArray(obj.students);
+        }
+
+        function getUUID() {
+            if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+            return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+        }
+
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            if (t) {
+                t.innerText = m;
+                t.style.opacity = 1;
+                clearTimeout(showToast._timer);
+                showToast._timer = setTimeout(() => t.style.opacity = 0, 2000);
+            }
+        }
+
+        // 저장: (1) 이전 데이터 백업 -> (2) 새 데이터 저장
+        function saveDBImmediate() {
+            try {
+                const prev = localStorage.getItem(STORAGE_KEY);
+                if (prev) localStorage.setItem(BACKUP_KEY, prev);
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+                localStorage.setItem(META_KEY, JSON.stringify({ version: APP_VERSION, savedAt: Date.now() }));
+                return true;
+            } catch (e) {
+                console.error(e);
+                showToast("저장 실패: 브라우저 저장공간 부족/차단 가능");
+                return false;
+            }
+        }
+
+        // 너무 잦은 저장을 줄여 안정성/성능 개선
+        let _saveTimer = null;
+        function saveDB() {
+            clearTimeout(_saveTimer);
+            _saveTimer = setTimeout(() => saveDBImmediate(), 150);
+        }
+
+        function loadDB() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            const parsed = raw ? safeParseJSON(raw) : null;
+
+            if (isValidDB(parsed)) {
+                db = parsed;
+                return;
+            }
+
+            // 저장소가 깨졌거나 구조가 이상할 경우: 백업에서 복구 시도
+            const bRaw = localStorage.getItem(BACKUP_KEY);
+            const bParsed = bRaw ? safeParseJSON(bRaw) : null;
+
+            if (isValidDB(bParsed)) {
+                db = bParsed;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+                showToast("저장 데이터 복구: 백업에서 복원됨");
+                return;
+            }
+
+            // 완전 최초 실행만 샘플 생성(기존 데이터 덮어쓰기 사고 방지)
+            const meta = safeParseJSON(localStorage.getItem(META_KEY) || "");
+            const isFirstRun = !raw && !bRaw && !meta;
+
+            if (isFirstRun) {
+                generateSampleData();
+                saveDBImmediate();
+                showToast("첫 실행: 샘플 데이터 생성됨");
+            } else {
+                db = { classes: [], students: [] };
+                showToast("저장 데이터를 불러오지 못했습니다. (백업도 없음)");
+            }
+        }
+
+        function generateSampleData() {
+            const cid = 'c-sample';
+            db.classes = [{ id: cid, name: '수능 만점 정규반 (토)', schedule: 'SAT 09:30 - 13:00' }];
+            const names = ['김민준', '이서윤', '박도윤', '최지우', '정예준', '강하윤', '조현우', '윤서아', '장준서', '임다은', '한지후', '오지민', '서지안', '신채원', '권도경', '황은우', '안서현', '송민지', '유승우', '전하율'];
+            db.students = names.map((name) => {
+                const s = {
+                    id: getUUID(),
+                    classId: cid,
+                    name,
+                    phone: `010-${1000 + Math.floor(Math.random() * 8000)}-${1000 + Math.floor(Math.random() * 8000)}`,
+                    weeks: {},
+                    mock: { june: 35 + Math.floor(Math.random() * 15), sept: 38 + Math.floor(Math.random() * 12) },
+                    notes: '성실함.'
+                };
+                for (let w = 1; w <= 10; w++) s.weeks[w] = { homework: Math.random() > 0.1 ? '제출' : '미제출', exam1: 30 + Math.floor(Math.random() * 20), exam2: 32 + Math.floor(Math.random() * 18), incorrect: '' };
+                return s;
+            });
+        }
+
+        // =============================
+        // 백업 내보내기/불러오기
+        // =============================
+        function exportBackupJSON() {
+            const payload = {
+                meta: { exportedAt: Date.now(), version: APP_VERSION },
+                db
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `SmartAcademy_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast("백업 JSON 다운로드 완료");
+        }
+
+        function triggerImportBackupJSON() {
+            const input = document.getElementById('backup-file-input');
+            input.value = '';
+            input.onchange = async () => {
+                const file = input.files?.[0];
+                if (!file) return;
+                const text = await file.text();
+                const parsed = safeParseJSON(text);
+
+                if (!parsed || !parsed.db || !isValidDB(parsed.db)) {
+                    showToast("불러오기 실패: 파일 형식이 올바르지 않음");
+                    return;
+                }
+
+                openConfirm(
+                    "백업 불러오기",
+                    "현재 로컬 데이터가 백업 파일의 내용으로 교체됩니다.\n(기존 데이터는 자동 백업에 남습니다.)\n진행할까요?",
+                    () => {
+                        // 기존 데이터 자동 백업
+                        const prev = localStorage.getItem(STORAGE_KEY);
+                        if (prev) localStorage.setItem(BACKUP_KEY, prev);
+
+                        db = parsed.db;
+                        saveDBImmediate();
+                        renderClassSelection();
+                        exitToClassSelection();
+                        showToast("백업 불러오기 완료");
+                    }
+                );
+            };
+            input.click();
+        }
+
+        // =============================
+        // 기존 기능 코드(원본 유지 + 안정성/버그 수정)
+        // =============================
+
         // --- 상태 ---
-        let currentClassId = null, currentWeek = 1, totalWeeks = 10, activeHwStudentId = null, editingClassId = null, currentModalStudentId = null, gradingData = [], sortKey = 'name', sortDir = 'asc', gradingSortDir = 'asc', mockSortKey = 'name', mockSortDir = 'asc', transferTarget = 'exam1', isCopyMode = false;
-        const homeworkColors = { '제출': 'bg-emerald-500 text-white', '미제출': 'bg-rose-500 text-white', '미흡': 'bg-amber-500 text-white', '결석': 'bg-slate-400 text-white' };
+        let currentClassId = null,
+            currentWeek = 1,
+            totalWeeks = 10,
+            activeHwStudentId = null,
+            editingClassId = null,
+            currentModalStudentId = null,
+            gradingData = [],
+            sortKey = 'name',
+            sortDir = 'asc',
+            gradingSortDir = 'asc',
+            mockSortKey = 'name',
+            mockSortDir = 'asc',
+            transferTarget = 'exam1',
+            isCopyMode = false;
 
-        window.onload = () => { loadDB(); renderClassSelection(); lucide.createIcons(); document.addEventListener('click', (e) => { if (!e.target.closest('.state-tag')) document.getElementById('hw-selector-menu').style.display = 'none'; }); };
+        const homeworkColors = {
+            '제출': 'bg-emerald-500 text-white',
+            '미제출': 'bg-rose-500 text-white',
+            '미흡': 'bg-amber-500 text-white',
+            '결석': 'bg-slate-400 text-white'
+        };
 
-        // --- UI 기능 ---
-        function showToast(m) { const t = document.getElementById('toast'); if (t) { t.innerText = m; t.style.opacity = 1; setTimeout(() => t.style.opacity = 0, 2000); } }
-        function openConfirm(title, message, callback) { document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-message').innerText = message; document.getElementById('confirm-modal').classList.remove('hidden'); document.getElementById('confirm-action-btn').onclick = () => { callback(); closeConfirm(); }; lucide.createIcons(); }
+        window.onload = () => {
+            loadDB();
+            renderClassSelection();
+            lucide.createIcons();
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.state-tag')) document.getElementById('hw-selector-menu').style.display = 'none';
+            });
+        };
+
+        // --- Confirm ---
+        function openConfirm(title, message, callback) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-message').innerText = message;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            document.getElementById('confirm-action-btn').onclick = () => { callback(); closeConfirm(); };
+            lucide.createIcons();
+        }
         function closeConfirm() { document.getElementById('confirm-modal').classList.add('hidden'); }
-        function triggerResetData() { openConfirm("데이터 초기화", "모든 데이터를 삭제하고 다시 샘플 데이터를 생성하시겠습니까?", () => { localStorage.removeItem(STORAGE_KEY); location.reload(); }); }
 
-        // --- 가져오기(Import) 로직 ---
-        function openImportModal() { document.getElementById('import-area').value = ""; document.getElementById('import-modal').classList.remove('hidden'); lucide.createIcons(); }
+        function triggerResetData() {
+            openConfirm("데이터 초기화", "모든 데이터를 삭제하고 다시 샘플 데이터를 생성하시겠습니까?", () => {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(BACKUP_KEY);
+                localStorage.removeItem(META_KEY);
+                location.reload();
+            });
+        }
+
+        // --- 가져오기(Import) ---
+        function openImportModal() {
+            document.getElementById('import-area').value = "";
+            document.getElementById('import-week-hint').innerText = `현재 주차(${currentWeek}주차) 데이터로 입력됩니다.`;
+            document.getElementById('import-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
         function closeImportModal() { document.getElementById('import-modal').classList.add('hidden'); }
+
         function processImport() {
             const raw = document.getElementById('import-area').value;
             if (!raw.trim()) return showToast("붙여넣은 데이터가 없습니다.");
@@ -552,29 +808,41 @@
             rows.forEach(row => {
                 if (!row.trim()) return;
                 const cols = row.split('\t');
-                if (cols.length < 2) return; // 최소 이름, 번호는 필요
+                if (cols.length < 2) return;
 
-                const name = cols[0].trim();
-                const phone = cols[1].trim();
+                const name = (cols[0] || "").trim();
+                const phone = (cols[1] || "").trim();
+                if (!name || !phone) return;
+
                 const hw = cols[2] ? cols[2].trim() : '미제출';
                 const e1 = cols[3] ? Number(cols[3].trim()) : 0;
                 const e2 = cols[4] ? Number(cols[4].trim()) : 0;
                 const incor = cols[5] ? cols[5].trim() : '';
 
-                // 동일 클래스 내 이름+번호 중복 체크
                 const existing = db.students.find(s => s.name === name && s.phone === phone && s.classId === currentClassId);
 
                 if (existing) {
                     existing.weeks[currentWeek] = { homework: hw, exam1: e1, exam2: e2, incorrect: incor };
                     updatedCount++;
                 } else {
-                    const newStudent = { id: Date.now() + Math.random(), classId: currentClassId, name, phone, weeks: {}, mock: { june: 0, sept: 0 }, notes: '' };
+                    const newStudent = {
+                        id: getUUID(),
+                        classId: currentClassId,
+                        name,
+                        phone,
+                        weeks: {},
+                        mock: { june: 0, sept: 0 },
+                        notes: ''
+                    };
                     newStudent.weeks[currentWeek] = { homework: hw, exam1: e1, exam2: e2, incorrect: incor };
                     db.students.push(newStudent);
                     addedCount++;
                 }
             });
-            saveDB(); renderTable(); closeImportModal();
+
+            saveDB();
+            renderTable();
+            closeImportModal();
             showToast(`${addedCount}명 신규 등록, ${updatedCount}명 정보 업데이트 완료`);
         }
 
@@ -582,168 +850,554 @@
         function renderClassSelection() {
             const list = document.getElementById('class-list');
             list.innerHTML = db.classes.map(c => `
-                <div class="bg-white p-10 rounded-[3rem] border border-slate-100 hover:border-indigo-500 hover:shadow-2xl transition-all text-left group relative overflow-hidden">
-                    <div class="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onclick="editClass('${c.id}', event)" class="p-3 bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 rounded-2xl"><i data-lucide="edit-2" size="16"></i></button>
-                        <button onclick="triggerDeleteClass('${c.id}', event)" class="p-3 bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded-2xl"><i data-lucide="trash-2" size="16"></i></button>
-                    </div>
-                    <div onclick="enterClass('${c.id}')" class="cursor-pointer">
-                        <div class="bg-indigo-600 w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-white mb-8 group-hover:rotate-12 transition-transform shadow-lg"><i data-lucide="book-open"></i></div>
-                        <h3 class="text-3xl font-black text-slate-800 mb-2 tracking-tight">${c.name}</h3>
-                        <p class="text-slate-400 font-bold text-xs uppercase mb-8 tracking-widest">${c.schedule}</p>
-                        <div class="inline-flex items-center gap-2 text-indigo-600 font-black text-sm">대시보드 입장 <i data-lucide="arrow-right" size="18"></i></div>
-                    </div>
-                </div>
-            `).join(''); lucide.createIcons();
+        <div class="bg-white p-10 rounded-[3rem] border border-slate-100 hover:border-indigo-500 hover:shadow-2xl transition-all text-left group relative overflow-hidden">
+          <div class="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+            <button onclick="editClass('${c.id}', event)" class="p-3 bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 rounded-2xl"><i data-lucide="edit-2" size="16"></i></button>
+            <button onclick="triggerDeleteClass('${c.id}', event)" class="p-3 bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded-2xl"><i data-lucide="trash-2" size="16"></i></button>
+          </div>
+          <div onclick="enterClass('${c.id}')" class="cursor-pointer">
+            <div class="bg-indigo-600 w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-white mb-8 group-hover:rotate-12 transition-transform shadow-lg"><i data-lucide="book-open"></i></div>
+            <h3 class="text-3xl font-black text-slate-800 mb-2 tracking-tight">${c.name}</h3>
+            <p class="text-slate-400 font-bold text-xs uppercase mb-8 tracking-widest">${c.schedule || ""}</p>
+            <div class="inline-flex items-center gap-2 text-indigo-600 font-black text-sm">대시보드 입장 <i data-lucide="arrow-right" size="18"></i></div>
+          </div>
+        </div>
+      `).join('');
+            lucide.createIcons();
         }
 
         function enterClass(id) {
-            currentClassId = id; const cls = db.classes.find(c => c.id === id);
-            document.getElementById('active-class-name').innerText = cls.name; document.getElementById('active-class-schedule').innerText = cls.schedule;
-            document.getElementById('class-selection').classList.add('hidden'); document.getElementById('main-dashboard').classList.remove('hidden');
+            currentClassId = id;
+            const cls = db.classes.find(c => c.id === id);
+            if (!cls) return;
+
+            document.getElementById('active-class-name').innerText = cls.name;
+            document.getElementById('active-class-schedule').innerText = cls.schedule || "";
+
+            document.getElementById('class-selection').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+
             const classStudents = db.students.filter(s => s.classId === id);
-            let maxWeek = 1; classStudents.forEach(s => { const ws = Object.keys(s.weeks).map(Number); if (ws.length) maxWeek = Math.max(maxWeek, ...ws); });
-            totalWeeks = maxWeek; currentWeek = maxWeek; renderWeekSelector(); renderTable();
+            let maxWeek = 1;
+            classStudents.forEach(s => {
+                const ws = Object.keys(s.weeks || {}).map(Number);
+                if (ws.length) maxWeek = Math.max(maxWeek, ...ws);
+            });
+            totalWeeks = maxWeek;
+            currentWeek = maxWeek;
+            renderWeekSelector();
+            renderTable();
         }
 
         function saveClass() {
             const n = document.getElementById('modal-input-name').value;
             const s = document.getElementById('modal-input-schedule').value;
             if (!n) return;
-            if (editingClassId) { const c = db.classes.find(x => x.id === editingClassId); c.name = n; c.schedule = s; }
-            else { db.classes.push({ id: 'c' + Date.now(), name: n, schedule: s }); }
-            saveDB(); closeClassModal(); renderClassSelection(); showToast("저장되었습니다.");
+
+            if (editingClassId) {
+                const c = db.classes.find(x => x.id === editingClassId);
+                if (c) { c.name = n; c.schedule = s; }
+            } else {
+                db.classes.push({ id: 'c-' + getUUID(), name: n, schedule: s });
+            }
+            saveDB();
+            closeClassModal();
+            renderClassSelection();
+            showToast("저장되었습니다.");
         }
 
         // --- 학생 관리 및 정렬 ---
-        function handleSort(key) { if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc'; else { sortKey = key; sortDir = 'asc'; } renderTable(); }
+        function handleSort(key) {
+            if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            else { sortKey = key; sortDir = 'asc'; }
+            renderTable();
+        }
+
         function renderTable() {
             const tbody = document.getElementById('student-table-body');
             const search = (document.getElementById('student-search')?.value || "").toLowerCase();
-            let filtered = db.students.filter(s => s.classId === currentClassId && s.name.includes(search));
+
+            let filtered = db.students.filter(s => s.classId === currentClassId && (s.name || "").toLowerCase().includes(search));
+
             filtered.sort((a, b) => {
-                let vA, vB; const dA = a.weeks[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0 }; const dB = b.weeks[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0 };
-                switch (sortKey) { case 'name': vA = a.name; vB = b.name; break; case 'homework': vA = dA.homework; vB = dB.homework; break; case 'exam1': vA = Number(dA.exam1); vB = Number(dB.exam1); break; case 'exam2': vA = Number(dA.exam2); vB = Number(dB.exam2); break; default: vA = a.id; vB = b.id; }
+                let vA, vB;
+                const dA = a.weeks?.[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0 };
+                const dB = b.weeks?.[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0 };
+
+                switch (sortKey) {
+                    case 'name': vA = a.name || ""; vB = b.name || ""; break;
+                    case 'homework': vA = dA.homework || ""; vB = dB.homework || ""; break;
+                    case 'exam1': vA = Number(dA.exam1 || 0); vB = Number(dB.exam1 || 0); break;
+                    case 'exam2': vA = Number(dA.exam2 || 0); vB = Number(dB.exam2 || 0); break;
+                    default: vA = a.id; vB = b.id;
+                }
+
                 return vA < vB ? (sortDir === 'asc' ? -1 : 1) : (vA > vB ? (sortDir === 'asc' ? 1 : -1) : 0);
             });
+
             if (!tbody) return;
+
             tbody.innerHTML = filtered.map(s => {
-                const d = s.weeks[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
-                return `<tr class="hover:bg-slate-50/80 transition-all"><td class="px-6 py-4"><input type="text" value="${s.name}" onchange="updateStudent(${s.id}, 'name', this.value)" ondblclick="openStudentCard(${s.id})" class="edit-input w-full bg-transparent p-2 rounded-xl font-black text-indigo-600 outline-none cursor-help transition-all"></td><td class="px-6 py-4 text-slate-500 font-bold">${s.phone}</td><td class="px-6 py-4 text-center"><div onclick="openHwMenu(this, ${s.id})" class="state-tag inline-block px-5 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm cursor-pointer ${homeworkColors[d.homework]} active:scale-95 transition-all">${d.homework}</div></td><td class="px-6 py-4"><input type="number" value="${d.exam1}" onchange="updateData(${s.id}, 'exam1', this.value)" class="edit-input w-full text-center bg-transparent font-black text-slate-800 outline-none transition-all"></td><td class="px-6 py-4"><input type="number" value="${d.exam2}" onchange="updateData(${s.id}, 'exam2', this.value)" class="edit-input w-full text-center bg-transparent font-black text-slate-800 outline-none transition-all"></td><td class="px-6 py-4 hide-on-copy"><input type="text" value="${d.incorrect}" onchange="updateData(${s.id}, 'incorrect', this.value)" placeholder="문항" class="edit-input w-full bg-transparent text-[11px] font-bold text-slate-300 italic outline-none transition-all"></td></tr>`;
-            }).join(''); lucide.createIcons();
+                const d = s.weeks?.[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+                return `
+          <tr class="hover:bg-slate-50/80 transition-all">
+            <td class="px-6 py-4">
+              <input type="text" value="${escapeHtml(s.name || "")}" onchange="updateStudent('${s.id}', 'name', this.value)" ondblclick="openStudentCard('${s.id}')"
+                class="edit-input w-full bg-transparent p-2 rounded-xl font-black text-indigo-600 outline-none cursor-help transition-all">
+            </td>
+            <td class="px-6 py-4 text-slate-500 font-bold">${escapeHtml(s.phone || "")}</td>
+            <td class="px-6 py-4 text-center">
+              <div onclick="openHwMenu(this, '${s.id}')"
+                class="state-tag inline-block px-5 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm cursor-pointer ${homeworkColors[d.homework] || homeworkColors['미제출']} active:scale-95 transition-all">
+                ${escapeHtml(d.homework || "미제출")}
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <input type="number" value="${Number(d.exam1 || 0)}" onchange="updateData('${s.id}', 'exam1', this.value)"
+                class="edit-input w-full text-center bg-transparent font-black text-slate-800 outline-none transition-all">
+            </td>
+            <td class="px-6 py-4">
+              <input type="number" value="${Number(d.exam2 || 0)}" onchange="updateData('${s.id}', 'exam2', this.value)"
+                class="edit-input w-full text-center bg-transparent font-black text-slate-800 outline-none transition-all">
+            </td>
+            <td class="px-6 py-4 hide-on-copy">
+              <input type="text" value="${escapeHtml(d.incorrect || "")}" onchange="updateData('${s.id}', 'incorrect', this.value)" placeholder="문항"
+                class="edit-input w-full bg-transparent text-[11px] font-bold text-slate-300 italic outline-none transition-all">
+            </td>
+          </tr>`;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        // --- 주차 이동 ---
+        function renderWeekSelector() {
+            const sel = document.getElementById('week-selector');
+            if (sel) sel.innerHTML = Array.from({ length: totalWeeks }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentWeek ? 'selected' : ''}>주차 ${i + 1}</option>`).join('');
+        }
+        function jumpToWeek(n) { currentWeek = parseInt(n); renderWeekSelector(); renderTable(); }
+        function addNewWeek() { totalWeeks++; jumpToWeek(totalWeeks); showToast(totalWeeks + "주차 시트 생성"); }
+        function changeWeek(dir) {
+            const next = Math.min(totalWeeks, Math.max(1, currentWeek + dir));
+            currentWeek = next;
+            renderWeekSelector();
+            renderTable();
+        }
+
+        // --- 탭 ---
+        function switchTab(t) {
+            ['students', 'mock', 'grading'].forEach(id => {
+                document.getElementById('content-' + id).classList.toggle('hidden', id !== t);
+                document.getElementById('tab-btn-' + id).className = (id === t)
+                    ? "px-6 py-2.5 rounded-xl text-xs font-black bg-white text-indigo-600 shadow-sm transition-all"
+                    : "px-6 py-2.5 rounded-xl text-xs font-black text-slate-400 transition-all";
+            });
+            if (t === 'mock') renderMockTable();
+            if (t === 'students') renderTable();
+            if (t === 'grading') renderGradingTable();
+            lucide.createIcons();
         }
 
         // --- 모의고사 ---
-        function handleMockSort(key) { if (mockSortKey === key) mockSortDir = mockSortDir === 'asc' ? 'desc' : 'asc'; else { mockSortKey = key; mockSortDir = 'asc'; } renderMockTable(); }
+        function handleMockSort(key) {
+            if (mockSortKey === key) mockSortDir = mockSortDir === 'asc' ? 'desc' : 'asc';
+            else { mockSortKey = key; mockSortDir = 'asc'; }
+            renderMockTable();
+        }
+
         function renderMockTable() {
-            const tbody = document.getElementById('mock-table-body'); if (!tbody) return;
+            const tbody = document.getElementById('mock-table-body');
+            if (!tbody) return;
+
             const filtered = db.students.filter(s => s.classId === currentClassId);
-            filtered.sort((a, b) => { let vA, vB; if (mockSortKey === 'name') { vA = a.name; vB = b.name; } else { vA = Number(a.mock?.[mockSortKey] || 0); vB = Number(b.mock?.[mockSortKey] || 0); } return vA < vB ? (mockSortDir === 'asc' ? -1 : 1) : (vA > vB ? (mockSortDir === 'asc' ? 1 : -1) : 0); });
-            tbody.innerHTML = filtered.map(s => `<tr class="hover:bg-slate-50/80 transition-all"><td class="px-6 py-4 font-black text-slate-700">${s.name}</td><td class="px-6 py-4"><input type="number" value="${s.mock?.june || 0}" onchange="updateMock(${s.id}, 'june', this.value)" class="w-full text-center py-3 bg-slate-50 border border-slate-200 rounded-xl font-black outline-none focus:ring-4 focus:ring-indigo-100 transition-all"></td><td class="px-6 py-4"><input type="number" value="${s.mock?.sept || 0}" onchange="updateMock(${s.id}, 'sept', this.value)" class="w-full text-center py-3 bg-slate-50 border border-slate-200 rounded-xl font-black outline-none focus:ring-4 focus:ring-indigo-100 transition-all"></td></tr>`).join(''); lucide.createIcons();
+            filtered.sort((a, b) => {
+                let vA, vB;
+                if (mockSortKey === 'name') { vA = a.name || ""; vB = b.name || ""; }
+                else { vA = Number(a.mock?.[mockSortKey] || 0); vB = Number(b.mock?.[mockSortKey] || 0); }
+                return vA < vB ? (mockSortDir === 'asc' ? -1 : 1) : (vA > vB ? (mockSortDir === 'asc' ? 1 : -1) : 0);
+            });
+
+            tbody.innerHTML = filtered.map(s => `
+        <tr class="hover:bg-slate-50/80 transition-all">
+          <td class="px-6 py-4 font-black text-slate-700">${escapeHtml(s.name || "")}</td>
+          <td class="px-6 py-4">
+            <input type="number" value="${Number(s.mock?.june || 0)}" onchange="updateMock('${s.id}', 'june', this.value)"
+              class="w-full text-center py-3 bg-slate-50 border border-slate-200 rounded-xl font-black outline-none focus:ring-4 focus:ring-indigo-100 transition-all">
+          </td>
+          <td class="px-6 py-4">
+            <input type="number" value="${Number(s.mock?.sept || 0)}" onchange="updateMock('${s.id}', 'sept', this.value)"
+              class="w-full text-center py-3 bg-slate-50 border border-slate-200 rounded-xl font-black outline-none focus:ring-4 focus:ring-indigo-100 transition-all">
+          </td>
+        </tr>
+      `).join('');
+
+            lucide.createIcons();
         }
 
         // --- 자동 채점 ---
         function handleGradingSort() { gradingSortDir = gradingSortDir === 'asc' ? 'desc' : 'asc'; renderGradingTable(); }
-        function loadStudentsToGrading() { const cs = db.students.filter(s => s.classId === currentClassId); gradingData = cs.map(s => ({ id: s.id, name: s.name, answers: Array(20).fill(''), score: 0, wrongs: 0 })); renderGradingTable(); showToast("학생 명단을 불러왔습니다."); }
-        function excludeFromGrading(id) { gradingData = gradingData.filter(d => d.id !== id); renderGradingTable(); }
-        function renderGradingTable() {
-            const tbody = document.getElementById('grading-body'); if (!tbody) return;
-            gradingData.sort((a, b) => gradingSortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
-            tbody.innerHTML = gradingData.map((row) => {
-                let inputs = ''; for (let i = 1; i <= 20; i++) inputs += `<td class="p-1 border-r border-slate-200"><input type="text" value="${row.answers[i - 1]}" oninput="gradingData.find(d=>d.id===${row.id}).answers[${i - 1}]=this.value" class="w-8 h-8 text-center text-xs font-bold bg-white border border-slate-100 rounded outline-none focus:bg-indigo-50 transition-all"></td>`;
-                return `<tr class="hover:bg-slate-50 transition-all"><td class="px-2 py-3 text-center border-r border-slate-100"><button onclick="excludeFromGrading(${row.id})" class="text-slate-300 hover:text-rose-500 transition-colors"><i data-lucide="x-circle" size="14"></i></button></td><td class="px-4 py-3 font-bold sticky left-10 bg-white border-r border-slate-200 z-10 text-slate-700 shadow-sm">${row.name}</td>${inputs}<td class="px-4 py-3 text-center font-black text-indigo-600 bg-indigo-50/50">${row.score}</td><td class="px-4 py-3 text-center font-black text-rose-500 bg-rose-50/50">${row.wrongs}</td></tr>`;
-            }).join(''); updateStats(); lucide.createIcons();
+        function loadStudentsToGrading() {
+            const cs = db.students.filter(s => s.classId === currentClassId);
+            gradingData = cs.map(s => ({ id: s.id, name: s.name, answers: Array(20).fill(''), score: 0, wrongs: 0 }));
+            renderGradingTable();
+            showToast("학생 명단을 불러왔습니다.");
         }
+        function excludeFromGrading(id) { gradingData = gradingData.filter(d => d.id !== id); renderGradingTable(); }
+
+        function renderGradingTable() {
+            const tbody = document.getElementById('grading-body');
+            if (!tbody) return;
+
+            gradingData.sort((a, b) => gradingSortDir === 'asc'
+                ? (a.name || "").localeCompare(b.name || "")
+                : (b.name || "").localeCompare(a.name || ""));
+
+            tbody.innerHTML = gradingData.map((row) => {
+                let inputs = '';
+                for (let i = 1; i <= 20; i++) {
+                    inputs += `<td class="p-1 border-r border-slate-200"><input type="text" value="${escapeHtml(row.answers[i - 1] || "")}" oninput="gradingData.find(d=>d.id==='${row.id}').answers[${i - 1}]=this.value" class="w-8 h-8 text-center text-xs font-bold bg-white border border-slate-100 rounded outline-none focus:bg-indigo-50 transition-all"></td>`;
+                }
+                return `
+          <tr class="hover:bg-slate-50 transition-all">
+            <td class="px-2 py-3 text-center border-r border-slate-100">
+              <button onclick="excludeFromGrading('${row.id}')" class="text-slate-300 hover:text-rose-500 transition-colors"><i data-lucide="x-circle" size="14"></i></button>
+            </td>
+            <td class="px-4 py-3 font-bold sticky left-10 bg-white border-r border-slate-200 z-10 text-slate-700 shadow-sm">${escapeHtml(row.name || "")}</td>
+            ${inputs}
+            <td class="px-4 py-3 text-center font-black text-indigo-600 bg-indigo-50/50">${row.score}</td>
+            <td class="px-4 py-3 text-center font-black text-rose-500 bg-rose-50/50">${row.wrongs}</td>
+          </tr>`;
+            }).join('');
+
+            updateStats();
+            lucide.createIcons();
+        }
+
         function runGrading() {
             const key = Array.from({ length: 20 }, (_, i) => document.getElementById(`ans-${i + 1}`)?.value || "");
             const pts = Array.from({ length: 20 }, (_, i) => parseInt(document.getElementById(`pt-${i + 1}`)?.value || "0"));
+
             gradingData = gradingData.map(row => {
-                let s = 0, w = 0; row.answers.forEach((ans, i) => { if (ans !== "" && ans === key[i]) s += pts[i]; else if (key[i] !== "") w++; });
+                let s = 0, w = 0;
+                row.answers.forEach((ans, i) => {
+                    if (ans !== "" && ans === key[i]) s += pts[i];
+                    else if (key[i] !== "") w++;
+                });
                 return { ...row, score: s, wrongs: w };
-            }); renderGradingTable(); showToast("채점 완료 (50점 만점)");
+            });
+
+            renderGradingTable();
+            showToast("채점 완료 (50점 만점)");
         }
+
         function updateStats() {
-            const count = gradingData.length; if (!count) { ['stat-count', 'stat-max', 'stat-min', 'stat-avg'].forEach(id => document.getElementById(id).innerText = '0'); return; }
-            const scores = gradingData.map(r => r.score); document.getElementById('stat-count').innerText = count + "명"; document.getElementById('stat-max').innerText = Math.max(...scores); document.getElementById('stat-min').innerText = Math.min(...scores); document.getElementById('stat-avg').innerText = (scores.reduce((a, b) => a + b, 0) / count).toFixed(1);
+            const count = gradingData.length;
+            if (!count) {
+                ['stat-count', 'stat-max', 'stat-min', 'stat-avg'].forEach(id => document.getElementById(id).innerText = '0');
+                return;
+            }
+            const scores = gradingData.map(r => r.score);
+            document.getElementById('stat-count').innerText = count + "명";
+            document.getElementById('stat-max').innerText = Math.max(...scores);
+            document.getElementById('stat-min').innerText = Math.min(...scores);
+            document.getElementById('stat-avg').innerText = (scores.reduce((a, b) => a + b, 0) / count).toFixed(1);
         }
 
         // --- 성적 전송 ---
-        function openTransferModal() { if (!gradingData.length) return showToast("채점 데이터가 없습니다."); document.getElementById('transfer-week-select').innerHTML = Array.from({ length: totalWeeks }, (_, i) => `<option value="${i + 1}">주차 ${i + 1}</option>`).join(''); document.getElementById('transfer-modal').classList.remove('hidden'); setTransferTarget('exam1'); }
+        function openTransferModal() {
+            if (!gradingData.length) return showToast("채점 데이터가 없습니다.");
+            document.getElementById('transfer-week-select').innerHTML = Array.from({ length: totalWeeks }, (_, i) => `<option value="${i + 1}">주차 ${i + 1}</option>`).join('');
+            document.getElementById('transfer-modal').classList.remove('hidden');
+            setTransferTarget('exam1');
+        }
         function closeTransferModal() { document.getElementById('transfer-modal').classList.add('hidden'); }
-        function setTransferTarget(t) { transferTarget = t; document.getElementById('btn-target-exam1').className = t === 'exam1' ? "flex-1 py-3 bg-emerald-600 text-white rounded-xl font-black text-sm" : "flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm"; document.getElementById('btn-target-exam2').className = t === 'exam2' ? "flex-1 py-3 bg-emerald-600 text-white rounded-xl font-black text-sm" : "flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm"; }
-        function executeTransfer() { const w = document.getElementById('transfer-week-select').value; gradingData.forEach(row => { const s = db.students.find(x => x.id === row.id); if (s) { if (!s.weeks[w]) s.weeks[w] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' }; s.weeks[w][transferTarget] = row.score; } }); saveDB(); closeTransferModal(); renderTable(); showToast(`${w}주차로 점수를 보냈습니다.`); }
+
+        function setTransferTarget(t) {
+            transferTarget = t;
+            document.getElementById('btn-target-exam1').className = t === 'exam1'
+                ? "flex-1 py-3 bg-emerald-600 text-white rounded-xl font-black text-sm"
+                : "flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm";
+            document.getElementById('btn-target-exam2').className = t === 'exam2'
+                ? "flex-1 py-3 bg-emerald-600 text-white rounded-xl font-black text-sm"
+                : "flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm";
+        }
+
+        function executeTransfer() {
+            const w = document.getElementById('transfer-week-select').value;
+            gradingData.forEach(row => {
+                const s = db.students.find(x => x.id === row.id);
+                if (s) {
+                    if (!s.weeks[w]) s.weeks[w] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+                    s.weeks[w][transferTarget] = row.score;
+                }
+            });
+            saveDB();
+            closeTransferModal();
+            renderTable();
+            showToast(`${w}주차로 점수를 보냈습니다.`);
+        }
 
         // --- 꺾은선 그래프 ---
         function renderLineChart(myData, classData) {
             const svg = document.getElementById('trend-svg'); if (!svg) return;
-            const container = svg.parentElement; const width = container.clientWidth - 64; const height = container.clientHeight - 64;
-            svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.innerHTML = '';
-            const dataLength = myData.length; const padding = 20;
+            const container = svg.parentElement;
+            const width = container.clientWidth - 64;
+            const height = container.clientHeight - 64;
+
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            svg.innerHTML = '';
+            const dataLength = myData.length;
+            const padding = 20;
+
             const getX = (i) => dataLength <= 1 ? width / 2 : padding + (i * (width - padding * 2) / (dataLength - 1));
             const getY = (val) => height - padding - (val * (height - padding * 2) / 50);
 
             [0, 10, 20, 30, 40, 50].forEach(level => {
-                const y = getY(level); const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", 0); line.setAttribute("y1", y); line.setAttribute("x2", width); line.setAttribute("y2", y);
-                line.setAttribute("stroke", "#f1f5f9"); line.setAttribute("stroke-width", "1"); svg.appendChild(line);
+                const y = getY(level);
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", 0); line.setAttribute("y1", y);
+                line.setAttribute("x2", width); line.setAttribute("y2", y);
+                line.setAttribute("stroke", "#f1f5f9"); line.setAttribute("stroke-width", "1");
+                svg.appendChild(line);
+
                 const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                txt.setAttribute("x", 0); txt.setAttribute("y", y - 5); txt.setAttribute("fill", "#cbd5e1"); txt.setAttribute("font-size", "10"); txt.setAttribute("font-weight", "bold");
-                txt.textContent = level; svg.appendChild(txt);
+                txt.setAttribute("x", 0); txt.setAttribute("y", y - 5);
+                txt.setAttribute("fill", "#cbd5e1");
+                txt.setAttribute("font-size", "10");
+                txt.setAttribute("font-weight", "bold");
+                txt.textContent = level;
+                svg.appendChild(txt);
             });
+
             const drawPath = (data, color, isDashed = false) => {
                 if (!data.length) return;
-                if (data.length === 1) { const c = document.createElementNS("http://www.w3.org/2000/svg", "circle"); c.setAttribute("cx", width / 2); c.setAttribute("cy", getY(data[0])); c.setAttribute("r", "6"); c.setAttribute("fill", color); svg.appendChild(c); return; }
-                let d = `M ${getX(0)} ${getY(data[0])}`; for (let i = 1; i < data.length; i++) d += ` L ${getX(i)} ${getY(data[i])}`;
-                const path = document.createElementNS("http://www.w3.org/2000/svg", "path"); path.setAttribute("d", d); path.setAttribute("fill", "none"); path.setAttribute("stroke", color); path.setAttribute("stroke-width", "4"); path.setAttribute("stroke-linecap", "round"); if (isDashed) path.setAttribute("stroke-dasharray", "6,6"); path.classList.add('line-path'); svg.appendChild(path);
-                data.forEach((val, i) => { const c = document.createElementNS("http://www.w3.org/2000/svg", "circle"); c.setAttribute("cx", getX(i)); c.setAttribute("cy", getY(val)); c.setAttribute("r", "5"); c.setAttribute("fill", color); c.setAttribute("stroke", "white"); c.setAttribute("stroke-width", "2"); svg.appendChild(c); });
+                if (data.length === 1) {
+                    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    c.setAttribute("cx", width / 2);
+                    c.setAttribute("cy", getY(data[0]));
+                    c.setAttribute("r", "6");
+                    c.setAttribute("fill", color);
+                    svg.appendChild(c);
+                    return;
+                }
+                let d = `M ${getX(0)} ${getY(data[0])}`;
+                for (let i = 1; i < data.length; i++) d += ` L ${getX(i)} ${getY(data[i])}`;
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("d", d);
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke", color);
+                path.setAttribute("stroke-width", "4");
+                path.setAttribute("stroke-linecap", "round");
+                if (isDashed) path.setAttribute("stroke-dasharray", "6,6");
+                path.classList.add('line-path');
+                svg.appendChild(path);
+
+                data.forEach((val, i) => {
+                    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    c.setAttribute("cx", getX(i));
+                    c.setAttribute("cy", getY(val));
+                    c.setAttribute("r", "5");
+                    c.setAttribute("fill", color);
+                    c.setAttribute("stroke", "white");
+                    c.setAttribute("stroke-width", "2");
+                    svg.appendChild(c);
+                });
             };
-            drawPath(classData, "#e2e8f0", true); drawPath(myData, "#4f46e5");
+
+            drawPath(classData, "#e2e8f0", true);
+            drawPath(myData, "#4f46e5");
         }
 
         // --- 상세 카드 ---
         function openStudentCard(id) {
-            currentModalStudentId = id; const s = db.students.find(x => x.id === id); const classStudents = db.students.filter(x => x.classId === currentClassId);
-            document.getElementById('modal-student-name').innerText = s.name; document.getElementById('modal-notes').value = s.notes || '';
+            currentModalStudentId = id;
+            const s = db.students.find(x => x.id === id);
+            if (!s) return;
+
+            const classStudents = db.students.filter(x => x.classId === currentClassId);
+            document.getElementById('modal-student-name').innerText = s.name || "";
+            document.getElementById('modal-notes').value = s.notes || '';
             document.getElementById('modal-mock-june').innerText = s.mock?.june ? s.mock.june + "점" : "-";
             document.getElementById('modal-mock-sept').innerText = s.mock?.sept ? s.mock.sept + "점" : "-";
-            document.getElementById('withdraw-trigger-btn').onclick = () => openConfirm("퇴원 처리", `[${s.name}] 학생의 모든 기록을 삭제하시겠습니까?`, () => { db.students = db.students.filter(x => x.id !== id); saveDB(); closeModal(); renderTable(); showToast("퇴원 처리되었습니다."); });
 
-            let totalS = 0, hwC = 0, attC = 0, validW = 0; let sTrend = [], cTrend = [];
+            document.getElementById('withdraw-trigger-btn').onclick = () => openConfirm(
+                "퇴원 처리",
+                `[${s.name}] 학생의 모든 기록을 삭제하시겠습니까?`,
+                () => {
+                    db.students = db.students.filter(x => x.id !== id);
+                    saveDB();
+                    closeModal();
+                    renderTable();
+                    showToast("퇴원 처리되었습니다.");
+                }
+            );
+
+            let totalS = 0, hwC = 0, attC = 0, validW = 0;
+            let sTrend = [], cTrend = [];
+
             for (let w = 1; w <= totalWeeks; w++) {
-                const d = s.weeks[w]; const sAvg = d ? (Number(d.exam1) + Number(d.exam2)) / 2 : 0; sTrend.push(sAvg);
-                if (d) { validW++; totalS += sAvg; if (d.homework === '제출') hwC++; if (d.homework !== '결석') attC++; }
-                const wAvgs = classStudents.map(cs => { const cd = cs.weeks[w]; return cd ? (Number(cd.exam1) + Number(cd.exam2)) / 2 : 0; }).filter(v => v > 0);
+                const d = s.weeks?.[w];
+                const sAvg = d ? (Number(d.exam1 || 0) + Number(d.exam2 || 0)) / 2 : 0;
+                sTrend.push(sAvg);
+
+                if (d) {
+                    validW++;
+                    totalS += sAvg;
+                    if (d.homework === '제출') hwC++;
+                    if (d.homework !== '결석') attC++;
+                }
+
+                const wAvgs = classStudents
+                    .map(cs => cs.weeks?.[w])
+                    .filter(Boolean)
+                    .map(cd => (Number(cd.exam1 || 0) + Number(cd.exam2 || 0)) / 2)
+                    .filter(v => v > 0);
+
                 cTrend.push(wAvgs.length ? (wAvgs.reduce((a, b) => a + b, 0) / wAvgs.length) : 0);
             }
+
             document.getElementById('modal-avg-score').innerText = validW ? (totalS / validW).toFixed(1) : 0;
             document.getElementById('modal-hw-rate').innerText = validW ? ((hwC / validW) * 100).toFixed(0) + "%" : "0%";
             document.getElementById('modal-att-rate').innerText = validW ? ((attC / validW) * 100).toFixed(0) + "%" : "0%";
+
             document.getElementById('student-modal').classList.remove('hidden');
-            setTimeout(() => renderLineChart(sTrend, cTrend), 100); lucide.createIcons();
+            setTimeout(() => renderLineChart(sTrend, cTrend), 80);
+            lucide.createIcons();
         }
 
         // --- 기타 데이터 갱신 ---
-        function updateStudent(id, f, v) { const s = db.students.find(x => x.id === id); if (s) s[f] = v; saveDB(); }
-        function updateData(id, f, v) { const s = db.students.find(x => x.id === id); if (s) { if (!s.weeks[currentWeek]) s.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' }; s.weeks[currentWeek][f] = v; saveDB(); } }
-        function updateMock(id, f, v) { const s = db.students.find(x => x.id === id); if (s) { if (!s.mock) s.mock = { june: 0, sept: 0 }; s.mock[f] = Number(v); saveDB(); } }
-        function saveNotes() { const s = db.students.find(x => x.id === currentModalStudentId); if (s) { s.notes = document.getElementById('modal-notes').value; saveDB(); } }
-        function addNewStudent() { db.students.push({ id: Date.now(), classId: currentClassId, name: '새 학생', phone: '010-0000-0000', weeks: {}, mock: { june: 0, sept: 0 }, notes: '' }); renderTable(); }
-        function addNewWeek() { totalWeeks++; jumpToWeek(totalWeeks); showToast(totalWeeks + "주차 시트 생성"); }
-        function jumpToWeek(n) { currentWeek = parseInt(n); renderWeekSelector(); renderTable(); }
-        function renderWeekSelector() { const sel = document.getElementById('week-selector'); if (sel) sel.innerHTML = Array.from({ length: totalWeeks }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentWeek ? 'selected' : ''}>주차 ${i + 1}</option>`).join(''); }
-        function switchTab(t) { ['students', 'mock', 'grading'].forEach(id => { document.getElementById('content-' + id).classList.toggle('hidden', id !== t); document.getElementById('tab-btn-' + id).className = (id === t) ? "px-6 py-2.5 rounded-xl text-xs font-black bg-white text-indigo-600 shadow-sm transition-all" : "px-6 py-2.5 rounded-xl text-xs font-black text-slate-400 transition-all"; }); if (t === 'mock') renderMockTable(); if (t === 'students') renderTable(); if (t === 'grading') renderGradingTable(); lucide.createIcons(); }
-        function openClassModal(id = null) { editingClassId = id; document.getElementById('class-modal').classList.remove('hidden'); if (id) { const c = db.classes.find(x => x.id === id); document.getElementById('modal-input-name').value = c.name; document.getElementById('modal-input-schedule').value = c.schedule; } }
+        function updateStudent(id, f, v) {
+            const s = db.students.find(x => x.id === id);
+            if (s) s[f] = v;
+            saveDB();
+        }
+
+        function updateData(id, f, v) {
+            const s = db.students.find(x => x.id === id);
+            if (!s) return;
+            if (!s.weeks[currentWeek]) s.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+            s.weeks[currentWeek][f] = (f === 'exam1' || f === 'exam2') ? Number(v) : v;
+            saveDB();
+        }
+
+        function updateMock(id, f, v) {
+            const s = db.students.find(x => x.id === id);
+            if (!s) return;
+            if (!s.mock) s.mock = { june: 0, sept: 0 };
+            s.mock[f] = Number(v);
+            saveDB();
+        }
+
+        function saveNotes() {
+            const s = db.students.find(x => x.id === currentModalStudentId);
+            if (s) {
+                s.notes = document.getElementById('modal-notes').value;
+                saveDB();
+            }
+        }
+
+        function addNewStudent() {
+            db.students.push({
+                id: getUUID(),
+                classId: currentClassId,
+                name: '새 학생',
+                phone: '010-0000-0000',
+                weeks: {},
+                mock: { june: 0, sept: 0 },
+                notes: ''
+            });
+            saveDB();
+            renderTable();
+        }
+
+        // --- 수업 모달 ---
+        function openClassModal(id = null) {
+            editingClassId = id;
+            document.getElementById('class-modal').classList.remove('hidden');
+            if (id) {
+                const c = db.classes.find(x => x.id === id);
+                if (c) {
+                    document.getElementById('modal-input-name').value = c.name || "";
+                    document.getElementById('modal-input-schedule').value = c.schedule || "";
+                }
+            } else {
+                document.getElementById('modal-input-name').value = "";
+                document.getElementById('modal-input-schedule').value = "";
+            }
+            lucide.createIcons();
+        }
+
         function closeClassModal() { document.getElementById('class-modal').classList.add('hidden'); }
         function closeModal() { document.getElementById('student-modal').classList.add('hidden'); }
-        function exitToClassSelection() { document.getElementById('main-dashboard').classList.add('hidden'); document.getElementById('class-selection').classList.remove('hidden'); renderClassSelection(); }
+
+        function exitToClassSelection() {
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('class-selection').classList.remove('hidden');
+            renderClassSelection();
+        }
+
         function editClass(id, e) { e.stopPropagation(); openClassModal(id); }
-        function triggerDeleteClass(id, e) { e.stopPropagation(); openConfirm("수업 삭제", "해당 수업의 모든 학생 데이터가 삭제됩니다.", () => { db.classes = db.classes.filter(x => x.id !== id); db.students = db.students.filter(x => x.classId !== id); saveDB(); renderClassSelection(); }); }
-        function openHwMenu(el, id) { const menu = document.getElementById('hw-selector-menu'); const r = el.getBoundingClientRect(); activeHwStudentId = id; menu.style.display = 'flex'; menu.style.top = `${r.bottom + window.scrollY + 5}px`; menu.style.left = `${r.left + window.scrollX}px`; }
-        function setHomeworkStatus(s) { const st = db.students.find(x => x.id === activeHwStudentId); if (!st.weeks[currentWeek]) st.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' }; st.weeks[currentWeek].homework = s; document.getElementById('hw-selector-menu').style.display = 'none'; saveDB(); renderTable(); }
-        function toggleCopyMode() { isCopyMode = !isCopyMode; document.getElementById('table-container').classList.toggle('copy-mode', isCopyMode); document.getElementById('copy-btn-text').innerText = isCopyMode ? "일반 모드" : "복사 모드"; }
+
+        function triggerDeleteClass(id, e) {
+            e.stopPropagation();
+            openConfirm("수업 삭제", "해당 수업의 모든 학생 데이터가 삭제됩니다.", () => {
+                db.classes = db.classes.filter(x => x.id !== id);
+                db.students = db.students.filter(x => x.classId !== id);
+                saveDB();
+                renderClassSelection();
+            });
+        }
+
+        // --- 과제 상태 메뉴 ---
+        function openHwMenu(el, id) {
+            const menu = document.getElementById('hw-selector-menu');
+            const r = el.getBoundingClientRect();
+            activeHwStudentId = id;
+            menu.style.display = 'flex';
+            menu.style.top = `${r.bottom + window.scrollY + 5}px`;
+            menu.style.left = `${r.left + window.scrollX}px`;
+        }
+
+        function setHomeworkStatus(status) {
+            const st = db.students.find(x => x.id === activeHwStudentId);
+            if (!st) return;
+            if (!st.weeks[currentWeek]) st.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+            st.weeks[currentWeek].homework = status;
+            document.getElementById('hw-selector-menu').style.display = 'none';
+            saveDB();
+            renderTable();
+        }
+
+        // --- 복사 모드 ---
+        function toggleCopyMode() {
+            isCopyMode = !isCopyMode;
+            document.getElementById('table-container').classList.toggle('copy-mode', isCopyMode);
+            document.getElementById('copy-btn-text').innerText = isCopyMode ? "일반 모드" : "복사 모드";
+        }
+
         function copyForPpurio() {
-            let t = ""; db.students.filter(s => s.classId === currentClassId).forEach(s => { const d = s.weeks[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0 }; t += `${s.name}\t${s.phone}\t${d.homework}\t${d.exam1}\t${d.exam2}\n`; });
-            const el = document.createElement('textarea'); el.value = t; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); showToast("뿌리오용 데이터 복사 완료");
+            let t = "";
+            db.students.filter(s => s.classId === currentClassId).forEach(s => {
+                const d = s.weeks?.[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0 };
+                t += `${s.name}\t${s.phone}\t${d.homework}\t${d.exam1}\t${d.exam2}\n`;
+            });
+            const el = document.createElement('textarea');
+            el.value = t;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast("뿌리오용 데이터 복사 완료");
         }
     </script>
 </body>
