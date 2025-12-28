@@ -1106,6 +1106,93 @@
                 if ((e.ctrlKey || e.metaKey) && e.key === ';') { e.preventDefault(); const v = document.getElementById('content-withdrawn').classList.contains('hidden'); switchTab(v ? 'withdrawn' : 'students'); }
             });
         };
+
+        function openImportModal() {
+            syncActiveInputs({ save: true });
+            const hint = document.getElementById('import-week-hint');
+            if (hint) hint.innerText = `현재 ${currentWeek}주차 데이터로 입력됩니다.`;
+            document.getElementById('import-area').value = '';
+            document.getElementById('import-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('import-area')?.focus(), 50);
+        }
+
+        function closeImportModal() {
+            document.getElementById('import-modal').classList.add('hidden');
+        }
+
+        function processImport() {
+            syncActiveInputs({ save: true });
+
+            const area = document.getElementById('import-area');
+            const raw = (area?.value || '').trim();
+            if (!raw) return showToast("붙여넣은 데이터가 없습니다.");
+
+            const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            let updated = 0, created = 0;
+
+            // 이름 / 학생번호 / 학부모번호 / 과제 / 시험1 / 시험2 / 오답
+            for (const line of lines) {
+                const cols = line.split('\t');
+                if (cols.length < 3) continue;
+
+                const name = (cols[0] || '').trim();
+                const studentPhone = (cols[1] || '').trim();
+                const parentPhone = (cols[2] || '').trim();
+                const homework = (cols[3] || '미제출').trim() || '미제출';
+                const exam1 = Number((cols[4] || '0').trim()) || 0;
+                const exam2 = Number((cols[5] || '0').trim()) || 0;
+                const incorrect = (cols[6] || '').trim();
+
+                if (!name) continue;
+
+                // 규칙: 이름 + 학부모번호가 같으면 업데이트
+                let s = db.students.find(x =>
+                    x.classId === currentClassId &&
+                    (x.name || '').trim() === name &&
+                    (x.parentPhone || '').trim() === parentPhone
+                );
+
+                if (!s) {
+                    s = {
+                        id: getUUID(),
+                        classId: currentClassId,
+                        name,
+                        studentPhone,
+                        parentPhone,
+                        phone: parentPhone,
+                        withdrawn: false,
+                        withdrawnAt: 0,
+                        weeks: {},
+                        mock: { june: 0, sept: 0 },
+                        notes: ''
+                    };
+                    db.students.push(s);
+                    created++;
+                } else {
+                    s.studentPhone = studentPhone;
+                    s.parentPhone = parentPhone;
+                    s.phone = parentPhone;
+                    s.withdrawn = false;
+                    updated++;
+                }
+
+                if (!s.weeks) s.weeks = {};
+                if (!s.weeks[currentWeek]) s.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+
+                s.weeks[currentWeek].homework = homework;
+                s.weeks[currentWeek].exam1 = exam1;
+                s.weeks[currentWeek].exam2 = exam2;
+                s.weeks[currentWeek].incorrect = incorrect;
+            }
+
+            normalizeDB();
+            saveDBImmediate();
+            closeImportModal();
+            renderTable();
+            showToast(`가져오기 완료 (신규 ${created} / 업데이트 ${updated})`);
+        }
+
+
     </script>
 </body>
 
