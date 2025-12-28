@@ -63,7 +63,7 @@
             display: none;
             flex-direction: column;
             overflow: hidden;
-            min-width: 120px;
+            min-width: 140px;
         }
 
         .line-path {
@@ -130,10 +130,12 @@
             </div>
             <div class="p-8 space-y-4">
                 <p class="text-xs text-slate-500 leading-relaxed font-medium">
-                    엑셀에서 <span class="text-indigo-600 font-bold">[이름 / 휴대전화 / 과제 / 시험1 / 시험2 / 오답]</span> 순으로 드래그 복사하여
+                    엑셀에서 <span class="text-indigo-600 font-bold">[이름 / 학생번호 / 학부모번호 / 과제 / 시험1 / 시험2 / 오답]</span> 순으로
+                    드래그
+                    복사하여
                     아래에
                     붙여넣으세요.<br>
-                    * 이름과 번호가 같은 학생은 기존 데이터를 업데이트합니다.
+                    * 이름 + 학부모번호가 같은 학생은 기존 데이터를 업데이트합니다.
                 </p>
                 <textarea id="import-area"
                     class="w-full h-64 p-6 bg-slate-50 border border-slate-200 rounded-3xl text-xs outline-none focus:ring-4 focus:ring-indigo-100 transition-all font-mono"
@@ -190,6 +192,22 @@
             class="px-4 py-2 text-xs font-bold text-amber-600 hover:bg-amber-50 text-left">미흡</button>
         <button onclick="setHomeworkStatus('결석')"
             class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 text-left">결석</button>
+    </div>
+
+    <!-- 뿌리오 복사 메뉴 -->
+    <div id="ppurio-menu" class="dropdown-menu">
+        <button onclick="copyForPpurio('parent')"
+            class="px-4 py-2 text-xs font-black text-indigo-600 hover:bg-indigo-50 text-left flex items-center gap-2">
+            <i data-lucide="users" size="14"></i> 학부모 발송
+        </button>
+        <button onclick="copyForPpurio('student')"
+            class="px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 text-left flex items-center gap-2">
+            <i data-lucide="user" size="14"></i> 학생 발송
+        </button>
+        <button onclick="copyForPpurio('both')"
+            class="px-4 py-2 text-xs font-black text-emerald-600 hover:bg-emerald-50 text-left flex items-center gap-2">
+            <i data-lucide="copy" size="14"></i> 둘 다 발송
+        </button>
     </div>
 
     <!-- [1] 클래스 선택 화면 -->
@@ -287,9 +305,12 @@
                     <button onclick="openImportModal()"
                         class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-2xl text-xs font-black hover:bg-indigo-700 shadow-lg shadow-indigo-100"><i
                             data-lucide="file-up" size="18"></i> 엑셀 일괄 가져오기</button>
-                    <button onclick="copyForPpurio()"
+
+                    <!-- ✅ 뿌리오 복사: 버튼 누르면 메뉴 3개 -->
+                    <button onclick="openPpurioMenu(this)"
                         class="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-2xl text-xs font-black hover:bg-emerald-700 shadow-lg transition-all"><i
                             data-lucide="send" size="18"></i> 뿌리오용 복사</button>
+
                     <button onclick="toggleCopyMode()" id="copy-mode-btn"
                         class="flex items-center gap-2 px-5 py-2.5 border border-slate-200 rounded-2xl text-xs font-black hover:bg-white bg-slate-50 transition-all"><i
                             data-lucide="layers"></i> <span id="copy-btn-text">복사 모드</span></button>
@@ -314,9 +335,15 @@
                                 <div class="flex items-center gap-1">학생 이름 <i data-lucide="arrow-up-down" size="12"></i>
                                 </div>
                             </th>
+
+                            <!-- ✅ 열 순서: 학생번호, 학부모번호 -->
                             <th
-                                class="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest w-48">
-                                휴대전화</th>
+                                class="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest w-52">
+                                학생 번호</th>
+                            <th
+                                class="px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest w-52">
+                                학부모 번호</th>
+
                             <th onclick="handleSort('homework')"
                                 class="sortable px-6 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest w-36">
                                 <div class="flex items-center justify-center gap-1">과제/출석 <i data-lucide="arrow-up-down"
@@ -574,10 +601,10 @@
         // =============================
         // 안정성 강화: 로컬 저장 시스템
         // =============================
-        const STORAGE_KEY = 'ACADEMY_MASTER_V6_STORAGE'; // ✅ 너가 준 키 그대로 유지
+        const STORAGE_KEY = 'ACADEMY_MASTER_V6_STORAGE';
         const BACKUP_KEY = STORAGE_KEY + '__BACKUP';
         const META_KEY = STORAGE_KEY + '__META';
-        const APP_VERSION = '6.1.0';
+        const APP_VERSION = '6.1.1'; // ✅ 입력 유실 방지 패치
 
         let db = { classes: [], students: [] };
 
@@ -604,6 +631,84 @@
                 clearTimeout(showToast._timer);
                 showToast._timer = setTimeout(() => t.style.opacity = 0, 2000);
             }
+        }
+
+        // ✅ (중요) 주차 이동/렌더 전에 현재 화면 입력값 강제 반영 (Safari/IME 유실 방지)
+        function syncActiveInputs({ save = true } = {}) {
+            const container = document.getElementById('table-container');
+            if (!container) return;
+
+            const inputs = container.querySelectorAll('input[data-sync="student"], input[data-sync="week"]');
+            if (!inputs.length) return;
+
+            let touched = false;
+
+            inputs.forEach(inp => {
+                const id = inp.dataset.id;
+                const field = inp.dataset.field;
+                const kind = inp.dataset.sync;
+                if (!id || !field || !kind) return;
+
+                const s = db.students.find(x => x.id === id);
+                if (!s) return;
+
+                if (kind === 'student') {
+                    const val = (inp.value ?? '').trim();
+                    if (typeof s[field] !== 'string' || s[field] !== val) {
+                        s[field] = val;
+                        if (field === 'parentPhone') s.phone = val; // 호환
+                        touched = true;
+                    }
+                } else if (kind === 'week') {
+                    if (!s.weeks) s.weeks = {};
+                    if (!s.weeks[currentWeek]) s.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+
+                    let val = (inp.value ?? '');
+                    if (field === 'exam1' || field === 'exam2') val = Number(val || 0);
+
+                    if (s.weeks[currentWeek][field] !== val) {
+                        s.weeks[currentWeek][field] = val;
+                        touched = true;
+                    }
+                }
+            });
+
+            if (touched && save) saveDBImmediate();
+        }
+
+        // ✅ 기존 데이터 마이그레이션/정리
+        function normalizeDB() {
+            db.students = (db.students || []).map(s => {
+                if (!s || typeof s !== 'object') return s;
+
+                // weeks 기본
+                if (!s.weeks || typeof s.weeks !== 'object') s.weeks = {};
+
+                // 구버전: phone -> parentPhone
+                if (typeof s.parentPhone !== 'string') {
+                    if (typeof s.phone === 'string' && s.phone.trim()) s.parentPhone = s.phone.trim();
+                    else s.parentPhone = "";
+                }
+                if (typeof s.studentPhone !== 'string') s.studentPhone = "";
+
+                // 오염 케이스: 누군가 weeks에 번호를 넣어놨다면 최상단으로 회수
+                Object.values(s.weeks).forEach(w => {
+                    if (!w || typeof w !== 'object') return;
+                    if (!s.studentPhone && typeof w.studentPhone === 'string' && w.studentPhone.trim()) s.studentPhone = w.studentPhone.trim();
+                    if (!s.parentPhone && typeof w.parentPhone === 'string' && w.parentPhone.trim()) s.parentPhone = w.parentPhone.trim();
+                    delete w.studentPhone;
+                    delete w.parentPhone;
+                });
+
+                // 기타 기본
+                if (!s.mock) s.mock = { june: 0, sept: 0 };
+                if (typeof s.notes !== 'string') s.notes = "";
+
+                // 호환: phone 유지(학부모 번호)
+                s.phone = s.parentPhone || s.phone || "";
+
+                return s;
+            });
         }
 
         // 저장: (1) 이전 데이터 백업 -> (2) 새 데이터 저장
@@ -635,32 +740,41 @@
 
             if (isValidDB(parsed)) {
                 db = parsed;
+                normalizeDB();
                 return;
             }
 
-            // 저장소가 깨졌거나 구조가 이상할 경우: 백업에서 복구 시도
+            // 백업에서 복구 시도
             const bRaw = localStorage.getItem(BACKUP_KEY);
             const bParsed = bRaw ? safeParseJSON(bRaw) : null;
 
             if (isValidDB(bParsed)) {
                 db = bParsed;
+                normalizeDB();
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
                 showToast("저장 데이터 복구: 백업에서 복원됨");
                 return;
             }
 
-            // 완전 최초 실행만 샘플 생성(기존 데이터 덮어쓰기 사고 방지)
+            // 최초 실행만 샘플 생성
             const meta = safeParseJSON(localStorage.getItem(META_KEY) || "");
             const isFirstRun = !raw && !bRaw && !meta;
 
             if (isFirstRun) {
                 generateSampleData();
+                normalizeDB();
                 saveDBImmediate();
                 showToast("첫 실행: 샘플 데이터 생성됨");
             } else {
                 db = { classes: [], students: [] };
                 showToast("저장 데이터를 불러오지 못했습니다. (백업도 없음)");
             }
+        }
+
+        function randomPhone() {
+            const a = 1000 + Math.floor(Math.random() * 8000);
+            const b = 1000 + Math.floor(Math.random() * 8000);
+            return `010-${a}-${b}`;
         }
 
         function generateSampleData() {
@@ -672,7 +786,10 @@
                     id: getUUID(),
                     classId: cid,
                     name,
-                    phone: `010-${1000 + Math.floor(Math.random() * 8000)}-${1000 + Math.floor(Math.random() * 8000)}`,
+                    // ✅ 샘플에도 학생/학부모 번호 전원 채움
+                    studentPhone: randomPhone(),
+                    parentPhone: randomPhone(),
+                    phone: '',
                     weeks: {},
                     mock: { june: 35 + Math.floor(Math.random() * 15), sept: 38 + Math.floor(Math.random() * 12) },
                     notes: '성실함.'
@@ -686,6 +803,7 @@
         // 백업 내보내기/불러오기
         // =============================
         function exportBackupJSON() {
+            syncActiveInputs({ save: true });
             const payload = {
                 meta: { exportedAt: Date.now(), version: APP_VERSION },
                 db
@@ -718,24 +836,20 @@
                     "백업 불러오기",
                     "현재 로컬 데이터가 백업 파일의 내용으로 교체됩니다.\n(기존 데이터는 자동 백업에 남습니다.)\n진행할까요?",
                     () => {
-                        // 기존 데이터 자동 백업
                         const prev = localStorage.getItem(STORAGE_KEY);
                         if (prev) localStorage.setItem(BACKUP_KEY, prev);
 
                         db = parsed.db;
+                        normalizeDB();
                         saveDBImmediate();
                         renderClassSelection();
-                        exitToClassSelection();
+                        exitToClassSelection(true);
                         showToast("백업 불러오기 완료");
                     }
                 );
             };
             input.click();
         }
-
-        // =============================
-        // 기존 기능 코드(원본 유지 + 안정성/버그 수정)
-        // =============================
 
         // --- 상태 ---
         let currentClassId = null,
@@ -767,6 +881,20 @@
 
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.state-tag')) document.getElementById('hw-selector-menu').style.display = 'none';
+
+                // ✅ 뿌리오 메뉴 닫기
+                const pm = document.getElementById('ppurio-menu');
+                if (pm && !e.target.closest('#ppurio-menu') && !e.target.closest('[data-ppurio-trigger]')) {
+                    pm.style.display = 'none';
+                }
+            });
+
+            // ✅ 탭 비활성/종료 시에도 마지막 입력값 저장
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) syncActiveInputs({ save: true });
+            });
+            window.addEventListener('beforeunload', () => {
+                syncActiveInputs({ save: true });
             });
         };
 
@@ -791,6 +919,7 @@
 
         // --- 가져오기(Import) ---
         function openImportModal() {
+            syncActiveInputs({ save: true });
             document.getElementById('import-area').value = "";
             document.getElementById('import-week-hint').innerText = `현재 주차(${currentWeek}주차) 데이터로 입력됩니다.`;
             document.getElementById('import-modal').classList.remove('hidden');
@@ -799,6 +928,8 @@
         function closeImportModal() { document.getElementById('import-modal').classList.add('hidden'); }
 
         function processImport() {
+            syncActiveInputs({ save: true });
+
             const raw = document.getElementById('import-area').value;
             if (!raw.trim()) return showToast("붙여넣은 데이터가 없습니다.");
 
@@ -808,28 +939,53 @@
             rows.forEach(row => {
                 if (!row.trim()) return;
                 const cols = row.split('\t');
+
+                // 기대: [이름 / 학생번호 / 학부모번호 / 과제 / 시험1 / 시험2 / 오답]
                 if (cols.length < 2) return;
 
                 const name = (cols[0] || "").trim();
-                const phone = (cols[1] || "").trim();
-                if (!name || !phone) return;
+                const studentPhone = (cols[1] || "").trim();
+                const parentPhone = (cols[2] || "").trim();
 
-                const hw = cols[2] ? cols[2].trim() : '미제출';
-                const e1 = cols[3] ? Number(cols[3].trim()) : 0;
-                const e2 = cols[4] ? Number(cols[4].trim()) : 0;
-                const incor = cols[5] ? cols[5].trim() : '';
+                if (!name) return;
 
-                const existing = db.students.find(s => s.name === name && s.phone === phone && s.classId === currentClassId);
+                const hw = cols[3] ? cols[3].trim() : '미제출';
+                const e1 = cols[4] ? Number(cols[4].trim()) : 0;
+                const e2 = cols[5] ? Number(cols[5].trim()) : 0;
+                const incor = cols[6] ? cols[6].trim() : '';
+
+                // 업데이트 기준: name + parentPhone 우선, 없으면 name + studentPhone, 그것도 없으면 name
+                const existing =
+                    db.students.find(s =>
+                        s.classId === currentClassId &&
+                        (s.name || "") === name &&
+                        !!parentPhone &&
+                        (s.parentPhone || "") === parentPhone
+                    )
+                    || db.students.find(s =>
+                        s.classId === currentClassId &&
+                        (s.name || "") === name &&
+                        !!studentPhone &&
+                        (s.studentPhone || "") === studentPhone
+                    )
+                    || db.students.find(s => s.classId === currentClassId && (s.name || "") === name && !parentPhone && !studentPhone);
 
                 if (existing) {
+                    if (studentPhone) existing.studentPhone = studentPhone;
+                    if (parentPhone) existing.parentPhone = parentPhone;
+
+                    if (!existing.weeks) existing.weeks = {};
                     existing.weeks[currentWeek] = { homework: hw, exam1: e1, exam2: e2, incorrect: incor };
+                    existing.phone = existing.parentPhone || existing.phone || "";
                     updatedCount++;
                 } else {
                     const newStudent = {
                         id: getUUID(),
                         classId: currentClassId,
                         name,
-                        phone,
+                        studentPhone: studentPhone || "",
+                        parentPhone: parentPhone || "",
+                        phone: parentPhone || "",
                         weeks: {},
                         mock: { june: 0, sept: 0 },
                         notes: ''
@@ -840,7 +996,8 @@
                 }
             });
 
-            saveDB();
+            normalizeDB();
+            saveDBImmediate();
             renderTable();
             closeImportModal();
             showToast(`${addedCount}명 신규 등록, ${updatedCount}명 정보 업데이트 완료`);
@@ -867,6 +1024,8 @@
         }
 
         function enterClass(id) {
+            syncActiveInputs({ save: true });
+
             currentClassId = id;
             const cls = db.classes.find(c => c.id === id);
             if (!cls) return;
@@ -908,6 +1067,7 @@
 
         // --- 학생 관리 및 정렬 ---
         function handleSort(key) {
+            syncActiveInputs({ save: true });
             if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
             else { sortKey = key; sortDir = 'asc'; }
             renderTable();
@@ -942,10 +1102,35 @@
                 return `
           <tr class="hover:bg-slate-50/80 transition-all">
             <td class="px-6 py-4">
-              <input type="text" value="${escapeHtml(s.name || "")}" onchange="updateStudent('${s.id}', 'name', this.value)" ondblclick="openStudentCard('${s.id}')"
+              <input type="text" value="${escapeHtml(s.name || "")}"
+                data-sync="student" data-id="${escapeHtml(s.id)}" data-field="name"
+                oninput="updateStudent('${s.id}', 'name', this.value)"
+                onchange="updateStudent('${s.id}', 'name', this.value)"
+                onblur="updateStudent('${s.id}', 'name', this.value)"
+                ondblclick="openStudentCard('${s.id}')"
                 class="edit-input w-full bg-transparent p-2 rounded-xl font-black text-indigo-600 outline-none cursor-help transition-all">
             </td>
-            <td class="px-6 py-4 text-slate-500 font-bold">${escapeHtml(s.phone || "")}</td>
+
+            <!-- ✅ 학생번호 / 학부모번호: 주차와 무관 (항상 동일) -->
+            <td class="px-6 py-4">
+              <input type="text" value="${escapeHtml(s.studentPhone || "")}"
+                data-sync="student" data-id="${escapeHtml(s.id)}" data-field="studentPhone"
+                oninput="updateStudent('${s.id}', 'studentPhone', this.value)"
+                onchange="updateStudent('${s.id}', 'studentPhone', this.value)"
+                onblur="updateStudent('${s.id}', 'studentPhone', this.value)"
+                placeholder="010-0000-0000"
+                class="edit-input w-full bg-transparent p-2 rounded-xl font-bold text-slate-700 outline-none transition-all">
+            </td>
+            <td class="px-6 py-4">
+              <input type="text" value="${escapeHtml(s.parentPhone || "")}"
+                data-sync="student" data-id="${escapeHtml(s.id)}" data-field="parentPhone"
+                oninput="updateStudent('${s.id}', 'parentPhone', this.value)"
+                onchange="updateStudent('${s.id}', 'parentPhone', this.value)"
+                onblur="updateStudent('${s.id}', 'parentPhone', this.value)"
+                placeholder="010-0000-0000"
+                class="edit-input w-full bg-transparent p-2 rounded-xl font-bold text-slate-500 outline-none transition-all">
+            </td>
+
             <td class="px-6 py-4 text-center">
               <div onclick="openHwMenu(this, '${s.id}')"
                 class="state-tag inline-block px-5 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm cursor-pointer ${homeworkColors[d.homework] || homeworkColors['미제출']} active:scale-95 transition-all">
@@ -953,15 +1138,28 @@
               </div>
             </td>
             <td class="px-6 py-4">
-              <input type="number" value="${Number(d.exam1 || 0)}" onchange="updateData('${s.id}', 'exam1', this.value)"
+              <input type="number" value="${Number(d.exam1 || 0)}"
+                data-sync="week" data-id="${escapeHtml(s.id)}" data-field="exam1"
+                oninput="updateData('${s.id}', 'exam1', this.value)"
+                onchange="updateData('${s.id}', 'exam1', this.value)"
+                onblur="updateData('${s.id}', 'exam1', this.value)"
                 class="edit-input w-full text-center bg-transparent font-black text-slate-800 outline-none transition-all">
             </td>
             <td class="px-6 py-4">
-              <input type="number" value="${Number(d.exam2 || 0)}" onchange="updateData('${s.id}', 'exam2', this.value)"
+              <input type="number" value="${Number(d.exam2 || 0)}"
+                data-sync="week" data-id="${escapeHtml(s.id)}" data-field="exam2"
+                oninput="updateData('${s.id}', 'exam2', this.value)"
+                onchange="updateData('${s.id}', 'exam2', this.value)"
+                onblur="updateData('${s.id}', 'exam2', this.value)"
                 class="edit-input w-full text-center bg-transparent font-black text-slate-800 outline-none transition-all">
             </td>
             <td class="px-6 py-4 hide-on-copy">
-              <input type="text" value="${escapeHtml(d.incorrect || "")}" onchange="updateData('${s.id}', 'incorrect', this.value)" placeholder="문항"
+              <input type="text" value="${escapeHtml(d.incorrect || "")}"
+                data-sync="week" data-id="${escapeHtml(s.id)}" data-field="incorrect"
+                oninput="updateData('${s.id}', 'incorrect', this.value)"
+                onchange="updateData('${s.id}', 'incorrect', this.value)"
+                onblur="updateData('${s.id}', 'incorrect', this.value)"
+                placeholder="문항"
                 class="edit-input w-full bg-transparent text-[11px] font-bold text-slate-300 italic outline-none transition-all">
             </td>
           </tr>`;
@@ -984,9 +1182,20 @@
             const sel = document.getElementById('week-selector');
             if (sel) sel.innerHTML = Array.from({ length: totalWeeks }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentWeek ? 'selected' : ''}>주차 ${i + 1}</option>`).join('');
         }
-        function jumpToWeek(n) { currentWeek = parseInt(n); renderWeekSelector(); renderTable(); }
-        function addNewWeek() { totalWeeks++; jumpToWeek(totalWeeks); showToast(totalWeeks + "주차 시트 생성"); }
+        function jumpToWeek(n) {
+            syncActiveInputs({ save: true });
+            currentWeek = parseInt(n);
+            renderWeekSelector();
+            renderTable();
+        }
+        function addNewWeek() {
+            syncActiveInputs({ save: true });
+            totalWeeks++;
+            jumpToWeek(totalWeeks);
+            showToast(totalWeeks + "주차 시트 생성");
+        }
         function changeWeek(dir) {
+            syncActiveInputs({ save: true });
             const next = Math.min(totalWeeks, Math.max(1, currentWeek + dir));
             currentWeek = next;
             renderWeekSelector();
@@ -995,6 +1204,7 @@
 
         // --- 탭 ---
         function switchTab(t) {
+            syncActiveInputs({ save: true });
             ['students', 'mock', 'grading'].forEach(id => {
                 document.getElementById('content-' + id).classList.toggle('hidden', id !== t);
                 document.getElementById('tab-btn-' + id).className = (id === t)
@@ -1009,6 +1219,7 @@
 
         // --- 모의고사 ---
         function handleMockSort(key) {
+            syncActiveInputs({ save: true });
             if (mockSortKey === key) mockSortDir = mockSortDir === 'asc' ? 'desc' : 'asc';
             else { mockSortKey = key; mockSortDir = 'asc'; }
             renderMockTable();
@@ -1030,11 +1241,11 @@
         <tr class="hover:bg-slate-50/80 transition-all">
           <td class="px-6 py-4 font-black text-slate-700">${escapeHtml(s.name || "")}</td>
           <td class="px-6 py-4">
-            <input type="number" value="${Number(s.mock?.june || 0)}" onchange="updateMock('${s.id}', 'june', this.value)"
+            <input type="number" value="${Number(s.mock?.june || 0)}" oninput="updateMock('${s.id}', 'june', this.value)"
               class="w-full text-center py-3 bg-slate-50 border border-slate-200 rounded-xl font-black outline-none focus:ring-4 focus:ring-indigo-100 transition-all">
           </td>
           <td class="px-6 py-4">
-            <input type="number" value="${Number(s.mock?.sept || 0)}" onchange="updateMock('${s.id}', 'sept', this.value)"
+            <input type="number" value="${Number(s.mock?.sept || 0)}" oninput="updateMock('${s.id}', 'sept', this.value)"
               class="w-full text-center py-3 bg-slate-50 border border-slate-200 rounded-xl font-black outline-none focus:ring-4 focus:ring-indigo-100 transition-all">
           </td>
         </tr>
@@ -1046,6 +1257,7 @@
         // --- 자동 채점 ---
         function handleGradingSort() { gradingSortDir = gradingSortDir === 'asc' ? 'desc' : 'asc'; renderGradingTable(); }
         function loadStudentsToGrading() {
+            syncActiveInputs({ save: true });
             const cs = db.students.filter(s => s.classId === currentClassId);
             gradingData = cs.map(s => ({ id: s.id, name: s.name, answers: Array(20).fill(''), score: 0, wrongs: 0 }));
             renderGradingTable();
@@ -1114,6 +1326,7 @@
 
         // --- 성적 전송 ---
         function openTransferModal() {
+            syncActiveInputs({ save: true });
             if (!gradingData.length) return showToast("채점 데이터가 없습니다.");
             document.getElementById('transfer-week-select').innerHTML = Array.from({ length: totalWeeks }, (_, i) => `<option value="${i + 1}">주차 ${i + 1}</option>`).join('');
             document.getElementById('transfer-modal').classList.remove('hidden');
@@ -1132,6 +1345,7 @@
         }
 
         function executeTransfer() {
+            syncActiveInputs({ save: true });
             const w = document.getElementById('transfer-week-select').value;
             gradingData.forEach(row => {
                 const s = db.students.find(x => x.id === row.id);
@@ -1220,12 +1434,20 @@
 
         // --- 상세 카드 ---
         function openStudentCard(id) {
+            syncActiveInputs({ save: true });
+
             currentModalStudentId = id;
             const s = db.students.find(x => x.id === id);
             if (!s) return;
 
-            const classStudents = db.students.filter(x => x.classId === currentClassId);
+            const cls = db.classes.find(c => c.id === currentClassId);
+            const infoBits = [];
+            if (s.studentPhone) infoBits.push(`STU ${s.studentPhone}`);
+            if (s.parentPhone) infoBits.push(`PAR ${s.parentPhone}`);
             document.getElementById('modal-student-name').innerText = s.name || "";
+            document.getElementById('modal-student-info').innerText =
+                `${(cls?.name || "CLASS").toUpperCase()} • ${infoBits.join(" • ") || "NO PHONE"}`;
+
             document.getElementById('modal-notes').value = s.notes || '';
             document.getElementById('modal-mock-june').innerText = s.mock?.june ? s.mock.june + "점" : "-";
             document.getElementById('modal-mock-sept').innerText = s.mock?.sept ? s.mock.sept + "점" : "-";
@@ -1241,6 +1463,8 @@
                     showToast("퇴원 처리되었습니다.");
                 }
             );
+
+            const classStudents = db.students.filter(x => x.classId === currentClassId);
 
             let totalS = 0, hwC = 0, attC = 0, validW = 0;
             let sTrend = [], cTrend = [];
@@ -1278,15 +1502,20 @@
         // --- 기타 데이터 갱신 ---
         function updateStudent(id, f, v) {
             const s = db.students.find(x => x.id === id);
-            if (s) s[f] = v;
+            if (s) s[f] = (typeof v === 'string') ? v.trim() : v;
+
+            // 호환: phone은 더 이상 쓰지 않지만 남아있다면 parentPhone 우선
+            if (s && f === 'parentPhone') s.phone = s.parentPhone;
+
             saveDB();
         }
 
         function updateData(id, f, v) {
             const s = db.students.find(x => x.id === id);
             if (!s) return;
+            if (!s.weeks) s.weeks = {};
             if (!s.weeks[currentWeek]) s.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
-            s.weeks[currentWeek][f] = (f === 'exam1' || f === 'exam2') ? Number(v) : v;
+            s.weeks[currentWeek][f] = (f === 'exam1' || f === 'exam2') ? Number(v || 0) : v;
             saveDB();
         }
 
@@ -1294,7 +1523,7 @@
             const s = db.students.find(x => x.id === id);
             if (!s) return;
             if (!s.mock) s.mock = { june: 0, sept: 0 };
-            s.mock[f] = Number(v);
+            s.mock[f] = Number(v || 0);
             saveDB();
         }
 
@@ -1307,11 +1536,14 @@
         }
 
         function addNewStudent() {
+            syncActiveInputs({ save: true });
             db.students.push({
                 id: getUUID(),
                 classId: currentClassId,
                 name: '새 학생',
-                phone: '010-0000-0000',
+                studentPhone: '',
+                parentPhone: '',
+                phone: '',
                 weeks: {},
                 mock: { june: 0, sept: 0 },
                 notes: ''
@@ -1340,7 +1572,8 @@
         function closeClassModal() { document.getElementById('class-modal').classList.add('hidden'); }
         function closeModal() { document.getElementById('student-modal').classList.add('hidden'); }
 
-        function exitToClassSelection() {
+        function exitToClassSelection(skipSync = false) {
+            if (!skipSync) syncActiveInputs({ save: true });
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('class-selection').classList.remove('hidden');
             renderClassSelection();
@@ -1371,6 +1604,7 @@
         function setHomeworkStatus(status) {
             const st = db.students.find(x => x.id === activeHwStudentId);
             if (!st) return;
+            if (!st.weeks) st.weeks = {};
             if (!st.weeks[currentWeek]) st.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
             st.weeks[currentWeek].homework = status;
             document.getElementById('hw-selector-menu').style.display = 'none';
@@ -1380,24 +1614,108 @@
 
         // --- 복사 모드 ---
         function toggleCopyMode() {
+            syncActiveInputs({ save: true });
             isCopyMode = !isCopyMode;
             document.getElementById('table-container').classList.toggle('copy-mode', isCopyMode);
             document.getElementById('copy-btn-text').innerText = isCopyMode ? "일반 모드" : "복사 모드";
         }
 
-        function copyForPpurio() {
-            let t = "";
-            db.students.filter(s => s.classId === currentClassId).forEach(s => {
+        // ✅ 뿌리오 메뉴 열기
+        function openPpurioMenu(btnEl) {
+            syncActiveInputs({ save: true });
+            const menu = document.getElementById('ppurio-menu');
+            const r = btnEl.getBoundingClientRect();
+            menu.style.display = 'flex';
+            menu.style.top = `${r.bottom + window.scrollY + 6}px`;
+            menu.style.left = `${r.left + window.scrollX}px`;
+            btnEl.setAttribute('data-ppurio-trigger', '1');
+            setTimeout(() => btnEl.removeAttribute('data-ppurio-trigger'), 0);
+            lucide.createIcons();
+        }
+
+        // ✅ 클립보드 복사(사파리 포함 안정)
+        async function copyTextToClipboard(text) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+            } catch { /* fallback */ }
+            try {
+                const el = document.createElement('textarea');
+                el.value = text;
+                el.setAttribute('readonly', '');
+                el.style.position = 'fixed';
+                el.style.left = '-9999px';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        /**
+         * mode:
+         * - 'parent' : 이름 + 학부모번호 + 과제/출석 + 시험1 + 시험2
+         * - 'student': 이름 + 학생번호 + 과제/출석 + 시험1 + 시험2
+         * - 'both'   : (이름+학생번호+...)\n(이름+학부모번호+...)를 이어서 복사
+         */
+        async function copyForPpurio(mode = 'parent') {
+            // ✅ 현재 입력 중인 값까지 강제로 DB 반영
+            syncActiveInputs({ save: true });
+
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+
+            const menu = document.getElementById('ppurio-menu');
+            if (menu) menu.style.display = 'none';
+
+            if (!currentClassId) return showToast("수업을 먼저 선택하세요.");
+
+            const students = db.students.filter(s => s.classId === currentClassId);
+            if (!students.length) return showToast("복사할 학생이 없습니다.");
+
+            let lines = [];
+            let count = 0;
+
+            const pushLine = (name, phone, d) => {
+                const cleanPhone = (phone || "").trim();
+                if (!cleanPhone) return false;
+                lines.push(`${name}\t${cleanPhone}\t${d.homework || '미제출'}\t${Number(d.exam1 || 0)}\t${Number(d.exam2 || 0)}`);
+                return true;
+            };
+
+            students.forEach(s => {
                 const d = s.weeks?.[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0 };
-                t += `${s.name}\t${s.phone}\t${d.homework}\t${d.exam1}\t${d.exam2}\n`;
+
+                if (mode === 'student') {
+                    if (pushLine(s.name, s.studentPhone, d)) count++;
+                } else if (mode === 'parent') {
+                    if (pushLine(s.name, s.parentPhone, d)) count++;
+                } else if (mode === 'both') {
+                    const a = pushLine(s.name, s.studentPhone, d);
+                    const b = pushLine(s.name, s.parentPhone, d);
+                    if (a) count++;
+                    if (b) count++;
+                }
             });
-            const el = document.createElement('textarea');
-            el.value = t;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            showToast("뿌리오용 데이터 복사 완료");
+
+            if (!count) {
+                if (mode === 'student') return showToast("복사할 학생 번호가 없습니다. (학생번호 칸 확인)");
+                if (mode === 'parent') return showToast("복사할 학부모 번호가 없습니다. (학부모번호 칸 확인)");
+                return showToast("복사할 번호가 없습니다. (학생/학부모 번호 칸 확인)");
+            }
+
+            const text = lines.join('\n') + '\n';
+            const ok = await copyTextToClipboard(text);
+            if (!ok) return showToast("복사 실패: 브라우저 권한/보안 설정을 확인하세요.");
+
+            const label = mode === 'student' ? '학생' : (mode === 'parent' ? '학부모' : '학생+학부모');
+            showToast(`뿌리오용 복사 완료 (${label} ${count}건)`);
         }
     </script>
 </body>
