@@ -53,7 +53,7 @@
             display: none;
             flex-direction: column;
             overflow: hidden;
-            min-width: 140px;
+            min-width: 160px;
         }
 
         .line-path {
@@ -166,6 +166,69 @@
         </div>
     </div>
 
+    <!-- ✅ NEW: 필터 모달 -->
+    <div id="filter-modal"
+        class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[260] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-[2.2rem] shadow-2xl overflow-hidden animate-in zoom-in-95">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-slate-100 text-slate-700 p-3 rounded-2xl"><i data-lucide="filter"></i></div>
+                    <div>
+                        <h3 class="text-lg font-black text-slate-800">필터</h3>
+                        <p id="filter-week-hint" class="text-[11px] text-slate-400 font-bold">현재 주차 기준</p>
+                    </div>
+                </div>
+                <button onclick="closeFilterModal()" class="text-slate-400"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="p-6 space-y-5">
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">과제/출석</label>
+                    <select id="filter-hw"
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-black outline-none">
+                        <option value="ALL">전체</option>
+                        <option value="제출">제출</option>
+                        <option value="미제출">미제출</option>
+                        <option value="미흡">미흡</option>
+                        <option value="신규">신규</option>
+                        <option value="결석">결석</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">시험 1
+                            이상</label>
+                        <input id="filter-min-exam1" type="number" min="0" placeholder="예: 40"
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-black outline-none focus:ring-4 focus:ring-indigo-100">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">시험 2
+                            이상</label>
+                        <input id="filter-min-exam2" type="number" min="0" placeholder="예: 45"
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-black outline-none focus:ring-4 focus:ring-indigo-100">
+                    </div>
+                </div>
+
+                <div class="text-[11px] font-bold text-slate-400 leading-relaxed">
+                    * 필터는 <span class="text-slate-700">현재 주차</span> 기준으로 적용됩니다.<br>
+                    * 필터가 켜진 상태에서 “엑셀 복사/뿌리오 복사”를 하면 <span class="text-slate-700">조건에 맞는 학생만</span> 복사됩니다.
+                </div>
+            </div>
+
+            <div class="p-6 bg-slate-50 flex gap-3">
+                <button onclick="resetFilter()"
+                    class="flex-1 py-3 bg-white text-slate-600 rounded-2xl font-black border border-slate-200 hover:bg-slate-50 transition-all">
+                    초기화
+                </button>
+                <button onclick="applyFilter()"
+                    class="flex-1 py-3 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">
+                    적용
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="hw-selector-menu" class="dropdown-menu">
         <button onclick="setHomeworkStatus('제출')"
             class="px-4 py-2 text-xs font-bold text-emerald-600 hover:bg-emerald-50 text-left">제출</button>
@@ -179,6 +242,7 @@
             class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 text-left">결석</button>
     </div>
 
+    <!-- ✅ 발송(뿌리오) 드롭다운 (기존 재사용) -->
     <div id="ppurio-menu" class="dropdown-menu">
         <button onclick="copyForPpurio('parent')"
             class="px-4 py-2 text-xs font-black text-indigo-600 hover:bg-indigo-50 text-left flex items-center gap-2">
@@ -191,6 +255,30 @@
         <button onclick="copyForPpurio('both')"
             class="px-4 py-2 text-xs font-black text-emerald-600 hover:bg-emerald-50 text-left flex items-center gap-2">
             <i data-lucide="copy" size="14"></i> 둘 다 발송
+        </button>
+    </div>
+
+    <!-- ✅ 새로 추가: 데이터 메뉴 (엑셀 가져오기/복사 묶음) -->
+    <div id="data-menu" class="dropdown-menu">
+        <button onclick="openImportModal()"
+            class="px-4 py-2 text-xs font-black text-indigo-600 hover:bg-indigo-50 text-left flex items-center gap-2">
+            <i data-lucide="file-up" size="14"></i> 엑셀 일괄 가져오기
+        </button>
+        <button onclick="copyTableToExcel()"
+            class="px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 text-left flex items-center gap-2">
+            <i data-lucide="copy" size="14"></i> 엑셀 형태로 복사
+        </button>
+    </div>
+
+    <!-- ✅ 새로 추가: 주차 메뉴 (+주차 추가 / -주차 삭제 묶음) -->
+    <div id="week-menu" class="dropdown-menu">
+        <button onclick="addNewWeek()"
+            class="px-4 py-2 text-xs font-black text-indigo-600 hover:bg-indigo-50 text-left flex items-center gap-2">
+            <i data-lucide="plus" size="14"></i> 주차 추가
+        </button>
+        <button onclick="removeLastWeek()"
+            class="px-4 py-2 text-xs font-black text-rose-600 hover:bg-rose-50 text-left flex items-center gap-2">
+            <i data-lucide="minus" size="14"></i> 마지막 주차 삭제
         </button>
     </div>
 
@@ -267,56 +355,91 @@
             </div>
         </nav>
 
+        <!-- ✅ 학생관리 -->
         <main id="content-students" class="max-w-[1600px] mx-auto w-full p-6 space-y-6">
-            <div class="flex items-center justify-between bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-                <div class="flex items-center gap-4">
+            <!-- ✅ 정리된 툴바 -->
+            <div
+                class="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+                <!-- Left: 주차 네비 + 주차 메뉴 -->
+                <div class="flex items-center gap-3">
                     <div class="flex items-center bg-slate-100 rounded-2xl p-1 shadow-inner">
                         <button onclick="changeWeek(-1)"
-                            class="p-2 hover:bg-white rounded-xl transition-all text-slate-400 hover:text-slate-600"><i
-                                data-lucide="chevron-left" size="18"></i></button>
+                            class="p-2 hover:bg-white rounded-xl transition-all text-slate-400 hover:text-slate-600">
+                            <i data-lucide="chevron-left" size="18"></i>
+                        </button>
+
                         <select id="week-selector" onchange="jumpToWeek(this.value)"
-                            class="bg-transparent px-4 font-black text-indigo-600 outline-none cursor-pointer appearance-none text-center min-w-[100px]"></select>
+                            class="bg-transparent px-4 font-black text-indigo-600 outline-none cursor-pointer appearance-none text-center min-w-[110px]"></select>
+
                         <button onclick="changeWeek(1)"
-                            class="p-2 hover:bg-white rounded-xl transition-all text-slate-400 hover:text-slate-600"><i
-                                data-lucide="chevron-right" size="18"></i></button>
+                            class="p-2 hover:bg-white rounded-xl transition-all text-slate-400 hover:text-slate-600">
+                            <i data-lucide="chevron-right" size="18"></i>
+                        </button>
                     </div>
-                    <div class="flex gap-2">
-                        <button onclick="addNewWeek()"
-                            class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-black hover:bg-indigo-100 transition-colors">+
-                            주차 추가</button>
-                        <button onclick="removeLastWeek()"
-                            class="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-xs font-black hover:bg-rose-100 transition-colors">-
-                            주차 삭제</button>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button onclick="openImportModal()"
-                        class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-2xl text-xs font-black hover:bg-indigo-700 shadow-lg shadow-indigo-100"><i
-                            data-lucide="file-up" size="18"></i> 엑셀 일괄 가져오기</button>
 
-                    <button onclick="openPpurioMenu(this)"
-                        class="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-2xl text-xs font-black hover:bg-emerald-700 shadow-lg transition-all"><i
-                            data-lucide="send" size="18"></i> 뿌리오용 복사</button>
-
-                    <!-- ✅ 추가: 과제/출석 일괄 변경 -->
-                    <button id="bulk-hw-btn" onclick="openBulkHwMenu(event, this)" disabled
-                        class="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-2xl text-xs font-black hover:bg-slate-50 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
-                        <i data-lucide="check-square" size="18"></i> 과제/출석 일괄 변경 <span id="bulk-hw-count"
-                            class="text-slate-400 font-black">(0)</span>
+                    <button onclick="openWeekMenu(this)"
+                        class="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-2xl text-xs font-black hover:bg-slate-50 transition-all shadow-sm">
+                        <i data-lucide="calendar-cog" size="16" class="text-slate-500"></i> 주차 관리 <i
+                            data-lucide="chevron-down" size="14" class="text-slate-400"></i>
                     </button>
 
-                    <button onclick="copyTableToExcel()"
-                        class="flex items-center gap-2 px-5 py-2.5 border border-slate-200 rounded-2xl text-xs font-black hover:bg-white bg-slate-50 transition-all shadow-sm"><i
-                            data-lucide="copy" size="18" class="text-slate-400"></i> 엑셀 형태로 복사</button>
+                    <!-- ✅ 선택 상태(0명일 때 숨김) -->
+                    <div id="selection-chip"
+                        class="hidden items-center gap-2 ml-1 px-4 py-2 rounded-2xl bg-indigo-50 text-indigo-700 text-xs font-black border border-indigo-100">
+                        <i data-lucide="check-square" size="16"></i>
+                        <span>선택됨</span>
+                        <span id="selection-count"
+                            class="px-2 py-1 rounded-xl bg-white text-indigo-600 border border-indigo-100">(0)</span>
+                        <button onclick="clearSelection()"
+                            class="ml-1 px-3 py-1.5 rounded-xl bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 text-[11px] font-black">
+                            선택 해제
+                        </button>
+                    </div>
+                </div>
 
+                <!-- Right: 검색 + 필터 + 핵심 액션(그룹 버튼) + 학생추가 -->
+                <div class="flex items-center gap-3 flex-wrap justify-end">
+                    <!-- 검색 -->
                     <div class="relative">
                         <i data-lucide="search" class="absolute left-3 top-3 text-slate-400" size="14"></i>
                         <input type="text" id="student-search" oninput="renderTable()" placeholder="이름 검색..."
-                            class="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 w-32 transition-all">
+                            class="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 w-40 transition-all">
                     </div>
+
+                    <!-- ✅ NEW: 필터 버튼 -->
+                    <button onclick="openFilterModal()"
+                        class="relative flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-2xl text-xs font-black hover:bg-slate-50 transition-all shadow-sm">
+                        <i data-lucide="filter" size="16" class="text-slate-500"></i> 필터
+                        <span id="filter-badge"
+                            class="hidden absolute -top-1 -right-1 w-3 h-3 rounded-full bg-indigo-600 ring-2 ring-white"></span>
+                    </button>
+
+                    <!-- 데이터 드롭다운 -->
+                    <button onclick="openDataMenu(this)"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-2xl text-xs font-black hover:bg-slate-50 transition-all shadow-sm">
+                        <i data-lucide="database" size="16" class="text-slate-500"></i> 데이터 <i
+                            data-lucide="chevron-down" size="14" class="text-slate-400"></i>
+                    </button>
+
+                    <!-- 발송(뿌리오) 드롭다운 -->
+                    <button onclick="openPpurioMenu(this)"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-2xl text-xs font-black hover:bg-slate-50 transition-all shadow-sm">
+                        <i data-lucide="send" size="16" class="text-slate-500"></i> 발송 <i data-lucide="chevron-down"
+                            size="14" class="text-slate-400"></i>
+                    </button>
+
+                    <!-- ✅ 선택 있을 때만 보이는: 과제/출석 일괄 변경 -->
+                    <button id="bulk-hw-btn" onclick="openBulkHwMenu(event, this)"
+                        class="hidden flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-2xl text-xs font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+                        <i data-lucide="check-square" size="18"></i> 과제/출석 일괄 변경 <span id="bulk-hw-count"
+                            class="text-indigo-100 font-black">(0)</span>
+                    </button>
+
+                    <!-- 학생 추가 (Primary) -->
                     <button onclick="addNewStudent()"
-                        class="bg-slate-800 text-white px-5 py-2.5 rounded-2xl font-black flex items-center gap-2 hover:bg-slate-700 text-xs shadow-lg"><i
-                            data-lucide="user-plus" size="16"></i> 학생 추가</button>
+                        class="bg-slate-900 text-white px-5 py-2.5 rounded-2xl font-black flex items-center gap-2 hover:bg-slate-800 text-xs shadow-lg">
+                        <i data-lucide="user-plus" size="16"></i> 학생 추가
+                    </button>
                 </div>
             </div>
 
@@ -325,7 +448,6 @@
                 <table class="w-full border-collapse" id="main-table">
                     <thead class="bg-slate-50 border-b border-slate-200">
                         <tr>
-                            <!-- ✅ 추가: 체크박스 컬럼 -->
                             <th
                                 class="px-4 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest w-14">
                                 <input id="select-all-students" type="checkbox" onchange="toggleSelectAll(this.checked)"
@@ -655,9 +777,18 @@
             '결석': 'bg-slate-400 text-white'
         };
 
-        // ✅ 추가: 다중 선택(일괄 변경) 상태
+        // ✅ 다중 선택(일괄 변경) 상태
         let selectedStudentIds = new Set();
         let _lastVisibleStudentIds = [];
+
+        // ✅ NEW: 필터 상태 (학생탭/복사 기능 연동)
+        // - hw: 'ALL' 또는 '제출' 등
+        // - minExam1/minExam2: null이면 미적용
+        let filterState = {
+            hw: 'ALL',
+            minExam1: null,
+            minExam2: null
+        };
 
         function safeParseJSON(text) { try { return JSON.parse(text); } catch { return null; } }
         function isValidDB(obj) { return obj && typeof obj === 'object' && Array.isArray(obj.classes) && Array.isArray(obj.students); }
@@ -759,29 +890,132 @@
         }
 
         // =============================
-        // [수정/추가된 기능] 복사 및 주차 삭제
+        // ✅ NEW: 필터 로직 (테이블/복사 연동)
         // =============================
+        function getWeekDataSafe(s, week = currentWeek) {
+            return s.weeks?.[week] || { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+        }
 
-        // 1. 엑셀 형태로 복사하기 (모든 컬럼 포함)
+        function isFilterActive() {
+            return (filterState.hw !== 'ALL')
+                || (filterState.minExam1 !== null && filterState.minExam1 !== '')
+                || (filterState.minExam2 !== null && filterState.minExam2 !== '');
+        }
+
+        function updateFilterBadge() {
+            const badge = document.getElementById('filter-badge');
+            if (!badge) return;
+            badge.classList.toggle('hidden', !isFilterActive());
+        }
+
+        function passesFilter(student) {
+            const d = getWeekDataSafe(student, currentWeek);
+
+            if (filterState.hw && filterState.hw !== 'ALL') {
+                if ((d.homework || '미제출') !== filterState.hw) return false;
+            }
+
+            if (filterState.minExam1 !== null && filterState.minExam1 !== '') {
+                const v = Number(d.exam1 || 0);
+                if (v < Number(filterState.minExam1)) return false;
+            }
+
+            if (filterState.minExam2 !== null && filterState.minExam2 !== '') {
+                const v = Number(d.exam2 || 0);
+                if (v < Number(filterState.minExam2)) return false;
+            }
+
+            return true;
+        }
+
+        // ✅ 학생 목록을 “한 군데”에서만 계산: (검색 + 필터 + 퇴원 제외)
+        function getFilteredStudents({ includeSearch = true } = {}) {
+            const search = includeSearch ? ((document.getElementById('student-search')?.value || "").toLowerCase()) : "";
+            return db.students
+                .filter(s => s.classId === currentClassId && !s.withdrawn)
+                .filter(s => !includeSearch || (s.name || "").toLowerCase().includes(search))
+                .filter(s => passesFilter(s));
+        }
+
+        function openFilterModal() {
+            syncActiveInputs({ save: true });
+
+            const hint = document.getElementById('filter-week-hint');
+            if (hint) hint.innerText = `현재 ${currentWeek}주차 기준`;
+
+            // 현재 상태를 UI에 반영
+            const hw = document.getElementById('filter-hw');
+            const e1 = document.getElementById('filter-min-exam1');
+            const e2 = document.getElementById('filter-min-exam2');
+
+            if (hw) hw.value = filterState.hw ?? 'ALL';
+            if (e1) e1.value = (filterState.minExam1 ?? '');
+            if (e2) e2.value = (filterState.minExam2 ?? '');
+
+            document.getElementById('filter-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeFilterModal() {
+            document.getElementById('filter-modal').classList.add('hidden');
+        }
+
+        function applyFilter() {
+            const hw = document.getElementById('filter-hw')?.value ?? 'ALL';
+            const e1raw = (document.getElementById('filter-min-exam1')?.value ?? '').toString().trim();
+            const e2raw = (document.getElementById('filter-min-exam2')?.value ?? '').toString().trim();
+
+            filterState.hw = hw;
+            filterState.minExam1 = (e1raw === '' ? null : Number(e1raw));
+            filterState.minExam2 = (e2raw === '' ? null : Number(e2raw));
+
+            closeFilterModal();
+            clearSelection();
+            updateFilterBadge();
+            renderTable();
+
+            const cnt = getFilteredStudents({ includeSearch: true }).length;
+            showToast(isFilterActive() ? `필터 적용됨 (${cnt}명)` : `필터 해제됨`);
+        }
+
+        function resetFilter() {
+            filterState = { hw: 'ALL', minExam1: null, minExam2: null };
+
+            // UI도 초기화
+            const hw = document.getElementById('filter-hw');
+            const e1 = document.getElementById('filter-min-exam1');
+            const e2 = document.getElementById('filter-min-exam2');
+            if (hw) hw.value = 'ALL';
+            if (e1) e1.value = '';
+            if (e2) e2.value = '';
+
+            updateFilterBadge();
+            clearSelection();
+            renderTable();
+            showToast('필터 초기화');
+        }
+
+        // =============================
+        // 복사 및 주차 삭제
+        // =============================
         async function copyTableToExcel() {
             syncActiveInputs({ save: true });
-            const search = (document.getElementById('student-search')?.value || "").toLowerCase();
-            let filtered = db.students.filter(s => s.classId === currentClassId && !s.withdrawn && (s.name || "").toLowerCase().includes(search));
-            if (filtered.length === 0) return showToast("데이터가 없습니다.");
+
+            const filtered = getFilteredStudents({ includeSearch: true });
+            if (filtered.length === 0) return showToast("조건에 해당하는 학생이 없습니다.");
 
             let tsv = "이름\t학생번호\t학부모번호\t과제/출석\t시험1\t시험2\t오답\n";
             filtered.forEach(s => {
-                const d = s.weeks?.[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+                const d = getWeekDataSafe(s, currentWeek);
                 tsv += `${s.name}\t${s.studentPhone}\t${s.parentPhone}\t${d.homework}\t${d.exam1}\t${d.exam2}\t${d.incorrect}\n`;
             });
 
             try {
                 await navigator.clipboard.writeText(tsv);
-                showToast("현재 표 내용이 엑셀 규격으로 복사되었습니다.");
+                showToast("현재(검색+필터) 결과가 엑셀 규격으로 복사되었습니다.");
             } catch (err) { showToast("복사 실패"); }
         }
 
-        // 2. 마지막 주차 삭제
         function removeLastWeek() {
             const cls = getActiveClassObj();
             if (!cls) return;
@@ -793,7 +1027,6 @@
             openConfirm("주차 삭제",
                 `현재 가장 마지막 주차인 ${delWeek}주차를 삭제하시겠습니까?\n해당 주차에 입력된 데이터는 복구할 수 없습니다.`,
                 () => {
-                    // ✅ 해당 수업 학생들의 delWeek 데이터 실제 삭제
                     db.students
                         .filter(s => s.classId === currentClassId)
                         .forEach(s => {
@@ -804,33 +1037,34 @@
                     totalWeeks = cls.weekCount;
                     currentWeek = Math.min(currentWeek, totalWeeks);
 
-                    saveDB(); // ✅ 저장
+                    saveDB();
                     renderWeekSelector();
                     renderTable();
+                    updateFilterBadge();
                     showToast(`${delWeek}주차 삭제 완료`);
                 }
             );
         }
 
-        // 3. 뿌리오 복사 로직 수정 (학생+학부모 둘다 발송 대응)
         async function copyForPpurio(mode = 'parent') {
             syncActiveInputs({ save: true });
             const menu = document.getElementById('ppurio-menu');
             if (menu) menu.style.display = 'none';
 
-            const students = db.students.filter(s => s.classId === currentClassId && !s.withdrawn);
+            // ✅ 검색+필터 결과만 대상으로
+            const students = getFilteredStudents({ includeSearch: true });
+            if (!students.length) return showToast("조건에 해당하는 학생이 없습니다.");
+
             let lines = [];
 
             students.forEach(s => {
-                const d = s.weeks?.[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0 };
+                const d = getWeekDataSafe(s, currentWeek);
 
-                // 학생 번호 추가 (mode가 student거나 both일 때)
                 if (mode === 'student' || mode === 'both') {
                     const sp = (s.studentPhone || "").trim();
                     if (sp) lines.push(`${s.name}\t${sp}\t${d.homework}\t${d.exam1}\t${d.exam2}`);
                 }
 
-                // 학부모 번호 추가 (mode가 parent거나 both일 때)
                 if (mode === 'parent' || mode === 'both') {
                     const pp = (s.parentPhone || "").trim();
                     if (pp) lines.push(`${s.name}\t${pp}\t${d.homework}\t${d.exam1}\t${d.exam2}`);
@@ -843,14 +1077,16 @@
         }
 
         // =============================
-        // ✅ [추가 기능] 과제/출석 "일괄 변경" (체크박스 선택 → 드롭다운 재사용)
+        // ✅ 과제/출석 "일괄 변경" + 툴바 상태 UI
         // =============================
         function updateBulkUI() {
             const btn = document.getElementById('bulk-hw-btn');
             const countEl = document.getElementById('bulk-hw-count');
             const allEl = document.getElementById('select-all-students');
 
-            // 선택된 학생 중 현재 수업/재원생만 유효로 계산
+            const chip = document.getElementById('selection-chip');
+            const chipCount = document.getElementById('selection-count');
+
             const validSelected = new Set(
                 [...selectedStudentIds].filter(id => {
                     const s = db.students.find(x => x.id === id);
@@ -860,10 +1096,14 @@
             selectedStudentIds = validSelected;
 
             const count = selectedStudentIds.size;
-            if (countEl) countEl.innerText = `(${count})`;
-            if (btn) btn.disabled = count === 0;
 
-            // 현재 보이는(필터 반영된) 목록 기준으로 select-all 상태 업데이트
+            if (countEl) countEl.innerText = `(${count})`;
+
+            // ✅ 선택 있을 때만: 일괄 버튼/선택칩 노출
+            if (btn) btn.classList.toggle('hidden', count === 0);
+            if (chip) chip.classList.toggle('hidden', count === 0);
+            if (chipCount) chipCount.innerText = `(${count})`;
+
             const visible = _lastVisibleStudentIds || [];
             if (allEl) {
                 if (!visible.length) {
@@ -884,12 +1124,10 @@
         }
 
         function toggleSelectAll(checked) {
-            // 현재 화면에 보이는 학생(검색/정렬 반영된)만 대상으로
             const visible = _lastVisibleStudentIds || [];
             if (checked) visible.forEach(id => selectedStudentIds.add(id));
             else visible.forEach(id => selectedStudentIds.delete(id));
             updateBulkUI();
-            // 체크박스 즉시 반영 위해 다시 렌더 (선택상태 보이는 것만 갱신)
             renderTable();
         }
 
@@ -901,7 +1139,7 @@
         }
 
         function openBulkHwMenu(e, el) {
-            if (e) e.stopPropagation(); // ✅ 문서 클릭 핸들러가 바로 닫아버리는 문제 방지
+            if (e) e.stopPropagation();
             syncActiveInputs({ save: true });
             if (selectedStudentIds.size === 0) return showToast("먼저 학생을 선택하세요.");
 
@@ -910,6 +1148,23 @@
             const r = el.getBoundingClientRect();
             m.style.display = 'flex';
             m.style.top = (r.bottom + window.scrollY + 5) + 'px';
+            m.style.left = (r.left + window.scrollX) + 'px';
+        }
+
+        // ✅ 새로 추가: 데이터 메뉴 / 주차 메뉴
+        function openDataMenu(el) {
+            const m = document.getElementById('data-menu');
+            const r = el.getBoundingClientRect();
+            m.style.display = 'flex';
+            m.style.top = (r.bottom + window.scrollY + 6) + 'px';
+            m.style.left = (r.left + window.scrollX) + 'px';
+        }
+
+        function openWeekMenu(el) {
+            const m = document.getElementById('week-menu');
+            const r = el.getBoundingClientRect();
+            m.style.display = 'flex';
+            m.style.top = (r.bottom + window.scrollY + 6) + 'px';
             m.style.left = (r.left + window.scrollX) + 'px';
         }
 
@@ -936,7 +1191,7 @@
 
         function enterClass(id) {
             currentClassId = id;
-            clearSelection(); // ✅ 수업 들어갈 때 선택 초기화
+            clearSelection();
 
             const cls = db.classes.find(c => c.id === id);
             document.getElementById('active-class-name').innerText = cls.name;
@@ -946,7 +1201,6 @@
 
             const cls2 = db.classes.find(c => c.id === id);
 
-            // weekCount가 없으면 "의미 있는 주차" 기준으로 복구
             if (!Number.isFinite(cls2.weekCount) || cls2.weekCount < 1) {
                 cls2.weekCount = inferWeekCountForClass(id);
                 saveDBImmediate();
@@ -956,17 +1210,20 @@
             currentWeek = cls2.weekCount;
 
             renderWeekSelector();
+            updateFilterBadge();
             switchTab('students');
         }
 
         function renderTable() {
             const tbody = document.getElementById('student-table-body');
-            const search = (document.getElementById('student-search')?.value || "").toLowerCase();
-            let filtered = db.students.filter(s => s.classId === currentClassId && !s.withdrawn && (s.name || "").toLowerCase().includes(search));
+
+            // ✅ 여기서만 “검색+필터” 반영
+            let filtered = getFilteredStudents({ includeSearch: true });
 
             filtered.sort((a, b) => {
-                const dA = a.weeks[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0 };
-                const dB = b.weeks[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0 };
+                const dA = getWeekDataSafe(a, currentWeek);
+                const dB = getWeekDataSafe(b, currentWeek);
+
                 let vA, vB;
                 if (sortKey === 'name') { vA = a.name; vB = b.name; }
                 else if (sortKey === 'homework') { vA = dA.homework; vB = dB.homework; }
@@ -977,11 +1234,10 @@
             _lastVisibleStudentIds = filtered.map(s => s.id);
 
             tbody.innerHTML = filtered.map(s => {
-                const d = s.weeks[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+                const d = getWeekDataSafe(s, currentWeek);
                 const checked = selectedStudentIds.has(s.id) ? 'checked' : '';
                 return `
           <tr class="hover:bg-slate-50 transition-all">
-            <!-- ✅ 체크박스 -->
             <td class="px-4 py-4 text-center">
               <input type="checkbox" ${checked} onchange="toggleSelectStudent('${s.id}', this.checked)"
                 class="w-4 h-4 accent-indigo-600 cursor-pointer">
@@ -1025,7 +1281,6 @@
             lucide.createIcons();
         }
 
-        // 자동 채점 렌더링
         function renderGradingTable() {
             const tbody = document.getElementById('grading-body');
             tbody.innerHTML = gradingData.map(row => {
@@ -1042,7 +1297,6 @@
             updateStats(); lucide.createIcons();
         }
 
-        // 그래프 렌더링
         function renderLineChart(myData, classData) {
             const svg = document.getElementById('trend-svg');
             const w = svg.parentElement.clientWidth - 64, h = svg.parentElement.clientHeight - 64;
@@ -1087,7 +1341,7 @@
 
             let myTrend = [], classTrend = [];
             for (let w = 1; w <= totalWeeks; w++) {
-                const d = s.weeks[w] || { exam1: 0, exam2: 0 };
+                const d = getWeekDataSafe(s, w);
                 myTrend.push((d.exam1 + d.exam2) / 2);
                 const all = db.students.filter(x => x.classId === currentClassId && !x.withdrawn).map(x => x.weeks[w]).filter(Boolean);
                 const avg = all.length ? all.reduce((a, b) => a + (b.exam1 + b.exam2) / 2, 0) / all.length : 0;
@@ -1132,14 +1386,13 @@
 
         function isMeaningfulWeekData(d) {
             if (!d) return false;
-            const hwMeaning = d.homework && d.homework !== '미제출'; // 기본값은 의미없음
+            const hwMeaning = d.homework && d.homework !== '미제출';
             const e1 = Number(d.exam1 || 0);
             const e2 = Number(d.exam2 || 0);
             const inc = (d.incorrect || "").trim();
             return hwMeaning || e1 !== 0 || e2 !== 0 || inc !== "";
         }
 
-        // 기존 DB(weekCount 없음) 복구용: "의미 있는 데이터"가 있는 주차까지만 max로 잡음
         function inferWeekCountForClass(classId) {
             const students = db.students.filter(s => s.classId === classId);
             let maxW = 1;
@@ -1154,7 +1407,6 @@
             return Math.max(1, maxW);
         }
 
-        // --- 보조 함수들 ---
         function switchTab(t) {
             syncActiveInputs();
             ['students', 'mock', 'grading', 'withdrawn'].forEach(id => {
@@ -1163,7 +1415,7 @@
                     ? "px-6 py-2.5 rounded-xl text-xs font-black bg-white text-indigo-600 shadow-sm"
                     : "px-6 py-2.5 rounded-xl text-xs font-black text-slate-400";
             });
-            if (t === 'students') renderTable();
+            if (t === 'students') { updateFilterBadge(); renderTable(); }
             if (t === 'mock') renderMockTable();
             if (t === 'grading') renderGradingTable();
             if (t === 'withdrawn') renderWithdrawnTable();
@@ -1229,9 +1481,8 @@
                 const c = db.classes.find(x => x.id === editingClassId);
                 c.name = n;
                 c.schedule = s;
-                // weekCount는 유지
             } else {
-                db.classes.push({ id: 'c-' + getUUID(), name: n, schedule: s, weekCount: 1 }); // ✅
+                db.classes.push({ id: 'c-' + getUUID(), name: n, schedule: s, weekCount: 1 });
             }
             saveDB();
             closeClassModal();
@@ -1256,9 +1507,7 @@
             m.style.left = (r.left + window.scrollX) + 'px';
         }
 
-        // ✅ 수정: 일괄 변경 지원
         function setHomeworkStatus(s) {
-            // 일괄 변경 모드
             if (activeHwStudentId === '__bulk__') {
                 if (selectedStudentIds.size === 0) { document.getElementById('hw-selector-menu').style.display = 'none'; return showToast("선택된 학생이 없습니다."); }
 
@@ -1278,7 +1527,6 @@
                 return;
             }
 
-            // 기존 단일 변경
             const st = db.students.find(x => x.id === activeHwStudentId);
             if (!st.weeks[currentWeek]) st.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
             st.weeks[currentWeek].homework = s;
@@ -1287,13 +1535,20 @@
             renderTable();
         }
 
-        function openPpurioMenu(el) { const m = document.getElementById('ppurio-menu'); const r = el.getBoundingClientRect(); m.style.display = 'flex'; m.style.top = (r.bottom + window.scrollY + 5) + 'px'; m.style.left = (r.left + window.scrollX) + 'px'; }
+        function openPpurioMenu(el) {
+            const m = document.getElementById('ppurio-menu');
+            const r = el.getBoundingClientRect();
+            m.style.display = 'flex';
+            m.style.top = (r.bottom + window.scrollY + 5) + 'px';
+            m.style.left = (r.left + window.scrollX) + 'px';
+        }
+
         function handleSort(k) { syncActiveInputs(); if (sortKey === k) sortDir = (sortDir === 'asc' ? 'desc' : 'asc'); else { sortKey = k; sortDir = 'asc'; } renderTable(); }
         function handleMockSort(k) { syncActiveInputs(); if (mockSortKey === k) mockSortDir = (mockSortDir === 'asc' ? 'desc' : 'asc'); else { mockSortKey = k; mockSortDir = 'asc'; } renderMockTable(); }
         function handleGradingSort() { gradingSortDir = (gradingSortDir === 'asc' ? 'desc' : 'asc'); renderGradingTable(); }
         function renderWeekSelector() { const s = document.getElementById('week-selector'); s.innerHTML = Array.from({ length: totalWeeks }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentWeek ? 'selected' : ''}>주차 ${i + 1}</option>`).join(''); }
-        function jumpToWeek(v) { syncActiveInputs(); currentWeek = parseInt(v); renderTable(); clearSelection(); }
-        function changeWeek(d) { syncActiveInputs(); const next = Math.max(1, Math.min(totalWeeks, currentWeek + d)); currentWeek = next; renderWeekSelector(); renderTable(); clearSelection(); }
+        function jumpToWeek(v) { syncActiveInputs(); currentWeek = parseInt(v); renderTable(); clearSelection(); updateFilterBadge(); }
+        function changeWeek(d) { syncActiveInputs(); const next = Math.max(1, Math.min(totalWeeks, currentWeek + d)); currentWeek = next; renderWeekSelector(); renderTable(); clearSelection(); updateFilterBadge(); }
 
         function addNewWeek() {
             syncActiveInputs();
@@ -1304,10 +1559,11 @@
             totalWeeks = cls.weekCount;
             currentWeek = totalWeeks;
 
-            saveDB(); // ✅ 저장
+            saveDB();
             renderWeekSelector();
             renderTable();
             clearSelection();
+            updateFilterBadge();
             showToast(totalWeeks + "주차 생성");
         }
 
@@ -1335,8 +1591,11 @@
 
             document.addEventListener('click', (e) => {
                 const hwMenu = document.getElementById('hw-selector-menu');
+                const ppMenu = document.getElementById('ppurio-menu');
+                const dataMenu = document.getElementById('data-menu');
+                const weekMenu = document.getElementById('week-menu');
 
-                // ✅ 수정: 메뉴 자체/개별 state-tag/일괄버튼 클릭이면 닫지 않음 (버튼 눌러도 “아무 반응 없음” 해결)
+                // ✅ 과제/출석 메뉴 닫기 조건
                 if (
                     hwMenu &&
                     !e.target.closest('#hw-selector-menu') &&
@@ -1346,8 +1605,27 @@
                     hwMenu.style.display = 'none';
                 }
 
-                if (!e.target.closest('#ppurio-menu') && !e.target.closest('[onclick*="openPpurioMenu"]')) {
-                    document.getElementById('ppurio-menu').style.display = 'none';
+                // ✅ 발송 메뉴 닫기
+                if (ppMenu && !e.target.closest('#ppurio-menu') && !e.target.closest('[onclick*="openPpurioMenu"]')) {
+                    ppMenu.style.display = 'none';
+                }
+
+                // ✅ 데이터 메뉴 닫기
+                if (dataMenu && !e.target.closest('#data-menu') && !e.target.closest('[onclick*="openDataMenu"]')) {
+                    dataMenu.style.display = 'none';
+                }
+
+                // ✅ 주차 메뉴 닫기
+                if (weekMenu && !e.target.closest('#week-menu') && !e.target.closest('[onclick*="openWeekMenu"]')) {
+                    weekMenu.style.display = 'none';
+                }
+            });
+
+            // ✅ 필터 모달: ESC로 닫기
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const fm = document.getElementById('filter-modal');
+                    if (fm && !fm.classList.contains('hidden')) closeFilterModal();
                 }
             });
 
@@ -1358,6 +1636,8 @@
                     switchTab(v ? 'withdrawn' : 'students');
                 }
             });
+
+            updateFilterBadge();
         };
 
         function openImportModal() {
@@ -1383,7 +1663,6 @@
             const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
             let updated = 0, created = 0;
 
-            // 이름 / 학생번호 / 학부모번호 / 과제 / 시험1 / 시험2 / 오답
             for (const line of lines) {
                 const cols = line.split('\t');
                 if (cols.length < 3) continue;
@@ -1398,7 +1677,6 @@
 
                 if (!name) continue;
 
-                // 규칙: 이름 + 학부모번호가 같으면 업데이트
                 let s = db.students.find(x =>
                     x.classId === currentClassId &&
                     (x.name || '').trim() === name &&
