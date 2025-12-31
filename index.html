@@ -298,6 +298,13 @@
                         class="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-2xl text-xs font-black hover:bg-emerald-700 shadow-lg transition-all"><i
                             data-lucide="send" size="18"></i> 뿌리오용 복사</button>
 
+                    <!-- ✅ 추가: 과제/출석 일괄 변경 -->
+                    <button id="bulk-hw-btn" onclick="openBulkHwMenu(event, this)" disabled
+                        class="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-2xl text-xs font-black hover:bg-slate-50 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i data-lucide="check-square" size="18"></i> 과제/출석 일괄 변경 <span id="bulk-hw-count"
+                            class="text-slate-400 font-black">(0)</span>
+                    </button>
+
                     <button onclick="copyTableToExcel()"
                         class="flex items-center gap-2 px-5 py-2.5 border border-slate-200 rounded-2xl text-xs font-black hover:bg-white bg-slate-50 transition-all shadow-sm"><i
                             data-lucide="copy" size="18" class="text-slate-400"></i> 엑셀 형태로 복사</button>
@@ -318,6 +325,13 @@
                 <table class="w-full border-collapse" id="main-table">
                     <thead class="bg-slate-50 border-b border-slate-200">
                         <tr>
+                            <!-- ✅ 추가: 체크박스 컬럼 -->
+                            <th
+                                class="px-4 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest w-14">
+                                <input id="select-all-students" type="checkbox" onchange="toggleSelectAll(this.checked)"
+                                    class="w-4 h-4 accent-indigo-600 cursor-pointer">
+                            </th>
+
                             <th onclick="handleSort('name')"
                                 class="sortable px-6 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest w-40">
                                 <div class="flex items-center gap-1">학생 이름 <i data-lucide="arrow-up-down" size="12"></i>
@@ -332,7 +346,8 @@
                             <th onclick="handleSort('homework')"
                                 class="sortable px-6 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest w-36">
                                 <div class="flex items-center justify-center gap-1">과제/출석 <i data-lucide="arrow-up-down"
-                                        size="12"></i></div>
+                                        size="12"></i>
+                                </div>
                             </th>
                             <th onclick="handleSort('exam1')"
                                 class="sortable px-6 py-5 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest w-24">
@@ -542,8 +557,8 @@
                     <div>
                         <h2 id="modal-student-name" class="text-4xl font-black text-slate-800 tracking-tight">이름</h2>
                         <p id="modal-student-info"
-                            class="text-indigo-600/60 font-black text-xs uppercase mt-2 tracking-widest">STUDENT PROFILE
-                        </p>
+                            class="text-indigo-600/60 font-black text-xs uppercase mt-2 tracking-widest">
+                            STUDENT PROFILE</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -640,6 +655,10 @@
             '결석': 'bg-slate-400 text-white'
         };
 
+        // ✅ 추가: 다중 선택(일괄 변경) 상태
+        let selectedStudentIds = new Set();
+        let _lastVisibleStudentIds = [];
+
         function safeParseJSON(text) { try { return JSON.parse(text); } catch { return null; } }
         function isValidDB(obj) { return obj && typeof obj === 'object' && Array.isArray(obj.classes) && Array.isArray(obj.students); }
         function getUUID() { return window.crypto?.randomUUID?.() || 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2); }
@@ -725,7 +744,18 @@
         function generateSampleData() {
             const cid = 'c-sample';
             db.classes = [{ id: cid, name: '예시 수업반', schedule: '토요일 09:30', weekCount: 1 }];
-            db.students = [{ id: getUUID(), classId: cid, name: '예시학생', studentPhone: '010-0000-0000', parentPhone: '010-1111-1111', withdrawn: false, withdrawnAt: 0, weeks: { 1: { homework: '제출', exam1: 45, exam2: 48, incorrect: '' } }, mock: { june: 45, sept: 48 }, notes: '성실함' }];
+            db.students = [{
+                id: getUUID(),
+                classId: cid,
+                name: '예시학생',
+                studentPhone: '010-0000-0000',
+                parentPhone: '010-1111-1111',
+                withdrawn: false,
+                withdrawnAt: 0,
+                weeks: { 1: { homework: '제출', exam1: 45, exam2: 48, incorrect: '' } },
+                mock: { june: 45, sept: 48 },
+                notes: '성실함'
+            }];
         }
 
         // =============================
@@ -782,7 +812,6 @@
             );
         }
 
-
         // 3. 뿌리오 복사 로직 수정 (학생+학부모 둘다 발송 대응)
         async function copyForPpurio(mode = 'parent') {
             syncActiveInputs({ save: true });
@@ -814,28 +843,101 @@
         }
 
         // =============================
+        // ✅ [추가 기능] 과제/출석 "일괄 변경" (체크박스 선택 → 드롭다운 재사용)
+        // =============================
+        function updateBulkUI() {
+            const btn = document.getElementById('bulk-hw-btn');
+            const countEl = document.getElementById('bulk-hw-count');
+            const allEl = document.getElementById('select-all-students');
+
+            // 선택된 학생 중 현재 수업/재원생만 유효로 계산
+            const validSelected = new Set(
+                [...selectedStudentIds].filter(id => {
+                    const s = db.students.find(x => x.id === id);
+                    return s && s.classId === currentClassId && !s.withdrawn;
+                })
+            );
+            selectedStudentIds = validSelected;
+
+            const count = selectedStudentIds.size;
+            if (countEl) countEl.innerText = `(${count})`;
+            if (btn) btn.disabled = count === 0;
+
+            // 현재 보이는(필터 반영된) 목록 기준으로 select-all 상태 업데이트
+            const visible = _lastVisibleStudentIds || [];
+            if (allEl) {
+                if (!visible.length) {
+                    allEl.checked = false;
+                    allEl.indeterminate = false;
+                } else {
+                    const selectedVisibleCount = visible.filter(id => selectedStudentIds.has(id)).length;
+                    allEl.checked = selectedVisibleCount === visible.length;
+                    allEl.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < visible.length;
+                }
+            }
+        }
+
+        function toggleSelectStudent(id, checked) {
+            if (checked) selectedStudentIds.add(id);
+            else selectedStudentIds.delete(id);
+            updateBulkUI();
+        }
+
+        function toggleSelectAll(checked) {
+            // 현재 화면에 보이는 학생(검색/정렬 반영된)만 대상으로
+            const visible = _lastVisibleStudentIds || [];
+            if (checked) visible.forEach(id => selectedStudentIds.add(id));
+            else visible.forEach(id => selectedStudentIds.delete(id));
+            updateBulkUI();
+            // 체크박스 즉시 반영 위해 다시 렌더 (선택상태 보이는 것만 갱신)
+            renderTable();
+        }
+
+        function clearSelection() {
+            selectedStudentIds.clear();
+            updateBulkUI();
+            const allEl = document.getElementById('select-all-students');
+            if (allEl) { allEl.checked = false; allEl.indeterminate = false; }
+        }
+
+        function openBulkHwMenu(e, el) {
+            if (e) e.stopPropagation(); // ✅ 문서 클릭 핸들러가 바로 닫아버리는 문제 방지
+            syncActiveInputs({ save: true });
+            if (selectedStudentIds.size === 0) return showToast("먼저 학생을 선택하세요.");
+
+            activeHwStudentId = '__bulk__';
+            const m = document.getElementById('hw-selector-menu');
+            const r = el.getBoundingClientRect();
+            m.style.display = 'flex';
+            m.style.top = (r.bottom + window.scrollY + 5) + 'px';
+            m.style.left = (r.left + window.scrollX) + 'px';
+        }
+
+        // =============================
         // 비즈니스 로직 및 렌더링
         // =============================
         function renderClassSelection() {
             const list = document.getElementById('class-list');
             list.innerHTML = db.classes.map(c => `
-                <div class="bg-white p-10 rounded-[3rem] border border-slate-100 hover:border-indigo-500 hover:shadow-2xl transition-all group relative">
-                    <div class="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onclick="editClass('${c.id}', event)" class="p-3 bg-slate-100 hover:bg-indigo-100 rounded-2xl"><i data-lucide="edit-2" size="16"></i></button>
-                        <button onclick="triggerDeleteClass('${c.id}', event)" class="p-3 bg-slate-100 hover:bg-rose-100 rounded-2xl"><i data-lucide="trash-2" size="16"></i></button>
-                    </div>
-                    <div onclick="enterClass('${c.id}')" class="cursor-pointer">
-                        <div class="bg-indigo-600 w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-white mb-8 shadow-lg"><i data-lucide="book-open"></i></div>
-                        <h3 class="text-3xl font-black text-slate-800 mb-2">${c.name}</h3>
-                        <p class="text-slate-400 font-bold text-xs uppercase mb-8">${c.schedule}</p>
-                        <div class="text-indigo-600 font-black text-sm">입장하기 →</div>
-                    </div>
-                </div>`).join('');
+        <div class="bg-white p-10 rounded-[3rem] border border-slate-100 hover:border-indigo-500 hover:shadow-2xl transition-all group relative">
+          <div class="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+            <button onclick="editClass('${c.id}', event)" class="p-3 bg-slate-100 hover:bg-indigo-100 rounded-2xl"><i data-lucide="edit-2" size="16"></i></button>
+            <button onclick="triggerDeleteClass('${c.id}', event)" class="p-3 bg-slate-100 hover:bg-rose-100 rounded-2xl"><i data-lucide="trash-2" size="16"></i></button>
+          </div>
+          <div onclick="enterClass('${c.id}')" class="cursor-pointer">
+            <div class="bg-indigo-600 w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-white mb-8 shadow-lg"><i data-lucide="book-open"></i></div>
+            <h3 class="text-3xl font-black text-slate-800 mb-2">${c.name}</h3>
+            <p class="text-slate-400 font-bold text-xs uppercase mb-8">${c.schedule}</p>
+            <div class="text-indigo-600 font-black text-sm">입장하기 →</div>
+          </div>
+        </div>`).join('');
             lucide.createIcons();
         }
 
         function enterClass(id) {
             currentClassId = id;
+            clearSelection(); // ✅ 수업 들어갈 때 선택 초기화
+
             const cls = db.classes.find(c => c.id === id);
             document.getElementById('active-class-name').innerText = cls.name;
             document.getElementById('active-class-schedule').innerText = cls.schedule;
@@ -872,19 +974,54 @@
                 return vA < vB ? (sortDir === 'asc' ? -1 : 1) : (vA > vB ? (sortDir === 'asc' ? 1 : -1) : 0);
             });
 
+            _lastVisibleStudentIds = filtered.map(s => s.id);
+
             tbody.innerHTML = filtered.map(s => {
                 const d = s.weeks[currentWeek] || { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+                const checked = selectedStudentIds.has(s.id) ? 'checked' : '';
                 return `
-                <tr class="hover:bg-slate-50 transition-all">
-                    <td class="px-6 py-4"><input type="text" data-sync="student" data-id="${s.id}" data-field="name" value="${s.name}" oninput="updateStudent('${s.id}', 'name', this.value)" ondblclick="openStudentCard('${s.id}')" class="w-full bg-transparent font-black text-indigo-600 outline-none cursor-help"></td>
-                    <td class="px-6 py-4"><input type="text" data-sync="student" data-id="${s.id}" data-field="studentPhone" value="${s.studentPhone}" oninput="updateStudent('${s.id}', 'studentPhone', this.value)" class="w-full bg-transparent font-bold text-slate-700 outline-none"></td>
-                    <td class="px-6 py-4"><input type="text" data-sync="student" data-id="${s.id}" data-field="parentPhone" value="${s.parentPhone}" oninput="updateStudent('${s.id}', 'parentPhone', this.value)" class="w-full bg-transparent font-bold text-slate-500 outline-none"></td>
-                    <td class="px-6 py-4 text-center"><div onclick="openHwMenu(this, '${s.id}')" class="state-tag inline-block px-5 py-2 rounded-xl text-[10px] font-black cursor-pointer ${homeworkColors[d.homework] || homeworkColors['미제출']}">${d.homework}</div></td>
-                    <td class="px-6 py-4"><input type="number" data-sync="week" data-id="${s.id}" data-field="exam1" value="${d.exam1}" oninput="updateData('${s.id}', 'exam1', this.value)" class="w-full text-center bg-transparent font-black outline-none"></td>
-                    <td class="px-6 py-4"><input type="number" data-sync="week" data-id="${s.id}" data-field="exam2" value="${d.exam2}" oninput="updateData('${s.id}', 'exam2', this.value)" class="w-full text-center bg-transparent font-black outline-none"></td>
-                    <td class="px-6 py-4"><input type="text" data-sync="week" data-id="${s.id}" data-field="incorrect" value="${d.incorrect}" oninput="updateData('${s.id}', 'incorrect', this.value)" placeholder="문항" class="w-full bg-transparent text-[11px] font-bold text-slate-300 italic outline-none"></td>
-                </tr>`;
+          <tr class="hover:bg-slate-50 transition-all">
+            <!-- ✅ 체크박스 -->
+            <td class="px-4 py-4 text-center">
+              <input type="checkbox" ${checked} onchange="toggleSelectStudent('${s.id}', this.checked)"
+                class="w-4 h-4 accent-indigo-600 cursor-pointer">
+            </td>
+
+            <td class="px-6 py-4">
+              <input type="text" data-sync="student" data-id="${s.id}" data-field="name" value="${escapeHtml(s.name)}"
+                oninput="updateStudent('${s.id}', 'name', this.value)" ondblclick="openStudentCard('${s.id}')"
+                class="w-full bg-transparent font-black text-indigo-600 outline-none cursor-help">
+            </td>
+            <td class="px-6 py-4">
+              <input type="text" data-sync="student" data-id="${s.id}" data-field="studentPhone" value="${escapeHtml(s.studentPhone || '')}"
+                oninput="updateStudent('${s.id}', 'studentPhone', this.value)"
+                class="w-full bg-transparent font-bold text-slate-700 outline-none">
+            </td>
+            <td class="px-6 py-4">
+              <input type="text" data-sync="student" data-id="${s.id}" data-field="parentPhone" value="${escapeHtml(s.parentPhone || '')}"
+                oninput="updateStudent('${s.id}', 'parentPhone', this.value)"
+                class="w-full bg-transparent font-bold text-slate-500 outline-none">
+            </td>
+            <td class="px-6 py-4 text-center">
+              <div onclick="openHwMenu(this, '${s.id}')" class="state-tag inline-block px-5 py-2 rounded-xl text-[10px] font-black cursor-pointer ${homeworkColors[d.homework] || homeworkColors['미제출']}">${escapeHtml(d.homework)}</div>
+            </td>
+            <td class="px-6 py-4">
+              <input type="number" data-sync="week" data-id="${s.id}" data-field="exam1" value="${Number(d.exam1 || 0)}"
+                oninput="updateData('${s.id}', 'exam1', this.value)" class="w-full text-center bg-transparent font-black outline-none">
+            </td>
+            <td class="px-6 py-4">
+              <input type="number" data-sync="week" data-id="${s.id}" data-field="exam2" value="${Number(d.exam2 || 0)}"
+                oninput="updateData('${s.id}', 'exam2', this.value)" class="w-full text-center bg-transparent font-black outline-none">
+            </td>
+            <td class="px-6 py-4">
+              <input type="text" data-sync="week" data-id="${s.id}" data-field="incorrect" value="${escapeHtml(d.incorrect || '')}"
+                oninput="updateData('${s.id}', 'incorrect', this.value)" placeholder="문항"
+                class="w-full bg-transparent text-[11px] font-bold text-slate-300 italic outline-none">
+            </td>
+          </tr>`;
             }).join('');
+
+            updateBulkUI();
             lucide.createIcons();
         }
 
@@ -895,12 +1032,12 @@
                 let ins = '';
                 for (let i = 0; i < 20; i++) ins += `<td class="p-1 border-r border-slate-200"><input type="text" value="${row.answers[i]}" oninput="gradingData.find(d=>d.id==='${row.id}').answers[${i}]=this.value" class="w-8 h-8 text-center text-xs font-bold bg-white border border-slate-100 rounded outline-none focus:bg-indigo-50"></td>`;
                 return `<tr class="hover:bg-slate-50">
-                    <td class="px-2 text-center"><button onclick="gradingData=gradingData.filter(d=>d.id!=='${row.id}');renderGradingTable();" class="text-slate-300 hover:text-rose-500"><i data-lucide="x-circle" size="14"></i></button></td>
-                    <td class="px-4 font-bold sticky left-10 bg-white border-r z-10">${row.name}</td>
-                    ${ins}
-                    <td class="px-4 text-center font-black text-indigo-600 bg-indigo-50/50">${row.score}</td>
-                    <td class="px-4 text-center font-black text-rose-500 bg-rose-50/50">${row.wrongs}</td>
-                </tr>`;
+          <td class="px-2 text-center"><button onclick="gradingData=gradingData.filter(d=>d.id!=='${row.id}');renderGradingTable();" class="text-slate-300 hover:text-rose-500"><i data-lucide="x-circle" size="14"></i></button></td>
+          <td class="px-4 font-bold sticky left-10 bg-white border-r z-10">${escapeHtml(row.name)}</td>
+          ${ins}
+          <td class="px-4 text-center font-black text-indigo-600 bg-indigo-50/50">${row.score}</td>
+          <td class="px-4 text-center font-black text-rose-500 bg-rose-50/50">${row.wrongs}</td>
+        </tr>`;
             }).join('');
             updateStats(); lucide.createIcons();
         }
@@ -965,16 +1102,16 @@
             const tbody = document.getElementById('withdrawn-table-body');
             const list = db.students.filter(s => s.classId === currentClassId && s.withdrawn);
             tbody.innerHTML = list.map(s => `
-                <tr class="hover:bg-slate-50 transition-all">
-                    <td class="px-6 py-4 font-black cursor-help hover:text-indigo-600" ondblclick="openStudentCard('${s.id}')">${s.name}</td>
-                    <td class="px-6 py-4">${s.studentPhone}</td>
-                    <td class="px-6 py-4">${s.parentPhone}</td>
-                    <td class="px-6 py-4 text-slate-400 font-bold">${new Date(s.withdrawnAt).toLocaleDateString()}</td>
-                    <td class="px-6 py-4 text-right">
-                        <button onclick="restoreStudent('${s.id}')" class="text-emerald-600 font-bold mr-4">복원</button>
-                        <button onclick="deleteStudentForever('${s.id}')" class="text-rose-600 font-bold">삭제</button>
-                    </td>
-                </tr>`).join('');
+        <tr class="hover:bg-slate-50 transition-all">
+          <td class="px-6 py-4 font-black cursor-help hover:text-indigo-600" ondblclick="openStudentCard('${s.id}')">${escapeHtml(s.name)}</td>
+          <td class="px-6 py-4">${escapeHtml(s.studentPhone || '')}</td>
+          <td class="px-6 py-4">${escapeHtml(s.parentPhone || '')}</td>
+          <td class="px-6 py-4 text-slate-400 font-bold">${new Date(s.withdrawnAt).toLocaleDateString()}</td>
+          <td class="px-6 py-4 text-right">
+            <button onclick="restoreStudent('${s.id}')" class="text-emerald-600 font-bold mr-4">복원</button>
+            <button onclick="deleteStudentForever('${s.id}')" class="text-rose-600 font-bold">삭제</button>
+          </td>
+        </tr>`).join('');
             lucide.createIcons();
         }
 
@@ -982,12 +1119,14 @@
             const tbody = document.getElementById('mock-table-body');
             const filtered = db.students.filter(s => s.classId === currentClassId && !s.withdrawn);
             tbody.innerHTML = filtered.map(s => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4 font-black">${s.name}</td>
-                    <td class="px-6 py-4"><input type="number" value="${s.mock.june}" onchange="updateMock('${s.id}', 'june', this.value)" class="w-full text-center py-3 bg-slate-50 rounded-xl font-black outline-none"></td>
-                    <td class="px-6 py-4"><input type="number" value="${s.mock.sept}" onchange="updateMock('${s.id}', 'sept', this.value)" class="w-full text-center py-3 bg-slate-50 rounded-xl font-black outline-none"></td>
-                </tr>`).join('');
-        } function getActiveClassObj() {
+        <tr class="hover:bg-slate-50">
+          <td class="px-6 py-4 font-black">${escapeHtml(s.name)}</td>
+          <td class="px-6 py-4"><input type="number" value="${Number(s.mock.june || 0)}" onchange="updateMock('${s.id}', 'june', this.value)" class="w-full text-center py-3 bg-slate-50 rounded-xl font-black outline-none"></td>
+          <td class="px-6 py-4"><input type="number" value="${Number(s.mock.sept || 0)}" onchange="updateMock('${s.id}', 'sept', this.value)" class="w-full text-center py-3 bg-slate-50 rounded-xl font-black outline-none"></td>
+        </tr>`).join('');
+        }
+
+        function getActiveClassObj() {
             return db.classes.find(c => c.id === currentClassId);
         }
 
@@ -1015,31 +1154,71 @@
             return Math.max(1, maxW);
         }
 
-
         // --- 보조 함수들 ---
         function switchTab(t) {
             syncActiveInputs();
             ['students', 'mock', 'grading', 'withdrawn'].forEach(id => {
                 document.getElementById('content-' + id).classList.toggle('hidden', id !== t);
-                document.getElementById('tab-btn-' + id).className = (id === t) ? "px-6 py-2.5 rounded-xl text-xs font-black bg-white text-indigo-600 shadow-sm" : "px-6 py-2.5 rounded-xl text-xs font-black text-slate-400";
+                document.getElementById('tab-btn-' + id).className = (id === t)
+                    ? "px-6 py-2.5 rounded-xl text-xs font-black bg-white text-indigo-600 shadow-sm"
+                    : "px-6 py-2.5 rounded-xl text-xs font-black text-slate-400";
             });
-            if (t === 'students') renderTable(); if (t === 'mock') renderMockTable(); if (t === 'grading') renderGradingTable(); if (t === 'withdrawn') renderWithdrawnTable();
+            if (t === 'students') renderTable();
+            if (t === 'mock') renderMockTable();
+            if (t === 'grading') renderGradingTable();
+            if (t === 'withdrawn') renderWithdrawnTable();
             lucide.createIcons();
         }
-        function updateStudent(id, f, v) { const s = db.students.find(x => x.id === id); if (s) { s[f] = v; if (f === 'parentPhone') s.phone = v; saveDB(); } }
-        function updateData(id, f, v) { const s = db.students.find(x => x.id === id); if (!s.weeks[currentWeek]) s.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' }; s.weeks[currentWeek][f] = (f === 'exam1' || f === 'exam2') ? Number(v) : v; saveDB(); }
+
+        function updateStudent(id, f, v) {
+            const s = db.students.find(x => x.id === id);
+            if (s) { s[f] = v; if (f === 'parentPhone') s.phone = v; saveDB(); }
+        }
+        function updateData(id, f, v) {
+            const s = db.students.find(x => x.id === id);
+            if (!s.weeks[currentWeek]) s.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+            s.weeks[currentWeek][f] = (f === 'exam1' || f === 'exam2') ? Number(v) : v; saveDB();
+        }
         function updateMock(id, f, v) { const s = db.students.find(x => x.id === id); s.mock[f] = Number(v); saveDB(); }
         function saveNotes() { db.students.find(x => x.id === currentModalStudentId).notes = document.getElementById('modal-notes').value; saveDB(); }
         function restoreStudent(id) { const s = db.students.find(x => x.id === id); s.withdrawn = false; s.withdrawnAt = 0; saveDB(); renderWithdrawnTable(); renderTable(); closeModal(); showToast("복원되었습니다."); }
         function deleteStudentForever(id) { openConfirm("영구 삭제", "데이터를 되돌릴 수 없습니다.", () => { db.students = db.students.filter(x => x.id !== id); saveDB(); renderWithdrawnTable(); }); }
         function loadStudentsToGrading() { gradingData = db.students.filter(s => s.classId === currentClassId && !s.withdrawn).map(s => ({ id: s.id, name: s.name, answers: Array(20).fill(""), score: 0, wrongs: 0 })); renderGradingTable(); showToast("학생 명단 동기화 완료"); }
-        function runGrading() { const key = Array.from({ length: 20 }, (_, i) => document.getElementById(`ans-${i + 1}`).value || ""); const pts = Array.from({ length: 20 }, (_, i) => parseInt(document.getElementById(`pt-${i + 1}`).value)); gradingData.forEach(row => { let score = 0, wrongs = 0; row.answers.forEach((ans, i) => { if (ans && ans === key[i]) score += pts[i]; else if (key[i]) wrongs++; }); row.score = score; row.wrongs = wrongs; }); renderGradingTable(); showToast("채점 완료"); }
-        function updateStats() { const scs = gradingData.map(r => r.score); const count = scs.length; if (!count) return; document.getElementById('stat-count').innerText = count + "명"; document.getElementById('stat-max').innerText = Math.max(...scs); document.getElementById('stat-min').innerText = Math.min(...scs); document.getElementById('stat-avg').innerText = (scs.reduce((a, b) => a + b, 0) / count).toFixed(1); }
+        function runGrading() {
+            const key = Array.from({ length: 20 }, (_, i) => document.getElementById(`ans-${i + 1}`).value || "");
+            const pts = Array.from({ length: 20 }, (_, i) => parseInt(document.getElementById(`pt-${i + 1}`).value));
+            gradingData.forEach(row => {
+                let score = 0, wrongs = 0;
+                row.answers.forEach((ans, i) => { if (ans && ans === key[i]) score += pts[i]; else if (key[i]) wrongs++; });
+                row.score = score; row.wrongs = wrongs;
+            });
+            renderGradingTable(); showToast("채점 완료");
+        }
+        function updateStats() {
+            const scs = gradingData.map(r => r.score);
+            const count = scs.length;
+            if (!count) return;
+            document.getElementById('stat-count').innerText = count + "명";
+            document.getElementById('stat-max').innerText = Math.max(...scs);
+            document.getElementById('stat-min').innerText = Math.min(...scs);
+            document.getElementById('stat-avg').innerText = (scs.reduce((a, b) => a + b, 0) / count).toFixed(1);
+        }
         function openConfirm(t, m, c) { document.getElementById('confirm-title').innerText = t; document.getElementById('confirm-message').innerText = m; document.getElementById('confirm-modal').classList.remove('hidden'); document.getElementById('confirm-action-btn').onclick = () => { c(); closeConfirm(); }; }
         function closeConfirm() { document.getElementById('confirm-modal').classList.add('hidden'); }
         function closeModal() { document.getElementById('student-modal').classList.add('hidden'); }
         function closeClassModal() { document.getElementById('class-modal').classList.add('hidden'); }
-        function openClassModal(id = null) { editingClassId = id; document.getElementById('class-modal').classList.remove('hidden'); if (id) { const c = db.classes.find(x => x.id === id); document.getElementById('modal-input-name').value = c.name; document.getElementById('modal-input-schedule').value = c.schedule; } else { document.getElementById('modal-input-name').value = ""; document.getElementById('modal-input-schedule').value = ""; } }
+        function openClassModal(id = null) {
+            editingClassId = id;
+            document.getElementById('class-modal').classList.remove('hidden');
+            if (id) {
+                const c = db.classes.find(x => x.id === id);
+                document.getElementById('modal-input-name').value = c.name;
+                document.getElementById('modal-input-schedule').value = c.schedule;
+            } else {
+                document.getElementById('modal-input-name').value = "";
+                document.getElementById('modal-input-schedule').value = "";
+            }
+        }
         function exitToClassSelection() { document.getElementById('main-dashboard').classList.add('hidden'); document.getElementById('class-selection').classList.remove('hidden'); renderClassSelection(); }
         function saveClass() {
             const n = document.getElementById('modal-input-name').value,
@@ -1058,19 +1237,66 @@
             closeClassModal();
             renderClassSelection();
         }
-        function triggerDeleteClass(id, e) { e.stopPropagation(); openConfirm("수업 삭제", "해당 수업의 모든 학생 데이터가 삭제됩니다.", () => { db.classes = db.classes.filter(x => x.id !== id); db.students = db.students.filter(x => x.classId !== id); saveDB(); renderClassSelection(); }); }
-        function openHwMenu(el, id) { activeHwStudentId = id; const m = document.getElementById('hw-selector-menu'); const r = el.getBoundingClientRect(); m.style.display = 'flex'; m.style.top = (r.bottom + window.scrollY + 5) + 'px'; m.style.left = (r.left + window.scrollX) + 'px'; }
-        function setHomeworkStatus(s) { const st = db.students.find(x => x.id === activeHwStudentId); if (!st.weeks[currentWeek]) st.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' }; st.weeks[currentWeek].homework = s; document.getElementById('hw-selector-menu').style.display = 'none'; saveDB(); renderTable(); }
+        function triggerDeleteClass(id, e) {
+            e.stopPropagation();
+            openConfirm("수업 삭제", "해당 수업의 모든 학생 데이터가 삭제됩니다.", () => {
+                db.classes = db.classes.filter(x => x.id !== id);
+                db.students = db.students.filter(x => x.classId !== id);
+                saveDB();
+                renderClassSelection();
+            });
+        }
+
+        function openHwMenu(el, id) {
+            activeHwStudentId = id;
+            const m = document.getElementById('hw-selector-menu');
+            const r = el.getBoundingClientRect();
+            m.style.display = 'flex';
+            m.style.top = (r.bottom + window.scrollY + 5) + 'px';
+            m.style.left = (r.left + window.scrollX) + 'px';
+        }
+
+        // ✅ 수정: 일괄 변경 지원
+        function setHomeworkStatus(s) {
+            // 일괄 변경 모드
+            if (activeHwStudentId === '__bulk__') {
+                if (selectedStudentIds.size === 0) { document.getElementById('hw-selector-menu').style.display = 'none'; return showToast("선택된 학생이 없습니다."); }
+
+                let applied = 0;
+                db.students
+                    .filter(x => x.classId === currentClassId && !x.withdrawn && selectedStudentIds.has(x.id))
+                    .forEach(st => {
+                        if (!st.weeks[currentWeek]) st.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+                        st.weeks[currentWeek].homework = s;
+                        applied++;
+                    });
+
+                document.getElementById('hw-selector-menu').style.display = 'none';
+                saveDB();
+                renderTable();
+                showToast(`과제/출석 일괄 변경 완료 (${applied}명)`);
+                return;
+            }
+
+            // 기존 단일 변경
+            const st = db.students.find(x => x.id === activeHwStudentId);
+            if (!st.weeks[currentWeek]) st.weeks[currentWeek] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' };
+            st.weeks[currentWeek].homework = s;
+            document.getElementById('hw-selector-menu').style.display = 'none';
+            saveDB();
+            renderTable();
+        }
+
         function openPpurioMenu(el) { const m = document.getElementById('ppurio-menu'); const r = el.getBoundingClientRect(); m.style.display = 'flex'; m.style.top = (r.bottom + window.scrollY + 5) + 'px'; m.style.left = (r.left + window.scrollX) + 'px'; }
         function handleSort(k) { syncActiveInputs(); if (sortKey === k) sortDir = (sortDir === 'asc' ? 'desc' : 'asc'); else { sortKey = k; sortDir = 'asc'; } renderTable(); }
         function handleMockSort(k) { syncActiveInputs(); if (mockSortKey === k) mockSortDir = (mockSortDir === 'asc' ? 'desc' : 'asc'); else { mockSortKey = k; mockSortDir = 'asc'; } renderMockTable(); }
         function handleGradingSort() { gradingSortDir = (gradingSortDir === 'asc' ? 'desc' : 'asc'); renderGradingTable(); }
         function renderWeekSelector() { const s = document.getElementById('week-selector'); s.innerHTML = Array.from({ length: totalWeeks }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentWeek ? 'selected' : ''}>주차 ${i + 1}</option>`).join(''); }
-        function jumpToWeek(v) { syncActiveInputs(); currentWeek = parseInt(v); renderTable(); }
-        function changeWeek(d) { syncActiveInputs(); const next = Math.max(1, Math.min(totalWeeks, currentWeek + d)); currentWeek = next; renderWeekSelector(); renderTable(); }
+        function jumpToWeek(v) { syncActiveInputs(); currentWeek = parseInt(v); renderTable(); clearSelection(); }
+        function changeWeek(d) { syncActiveInputs(); const next = Math.max(1, Math.min(totalWeeks, currentWeek + d)); currentWeek = next; renderWeekSelector(); renderTable(); clearSelection(); }
+
         function addNewWeek() {
             syncActiveInputs();
-
             const cls = getActiveClassObj();
             if (!cls) return;
 
@@ -1081,6 +1307,7 @@
             saveDB(); // ✅ 저장
             renderWeekSelector();
             renderTable();
+            clearSelection();
             showToast(totalWeeks + "주차 생성");
         }
 
@@ -1088,22 +1315,48 @@
         function closeTransferModal() { document.getElementById('transfer-modal').classList.add('hidden'); }
         function setTransferTarget(t) { transferTarget = t; document.getElementById('btn-target-exam1').className = t === 'exam1' ? "flex-1 py-3 bg-emerald-600 text-white rounded-xl font-black text-sm" : "flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm"; document.getElementById('btn-target-exam2').className = t === 'exam2' ? "flex-1 py-3 bg-emerald-600 text-white rounded-xl font-black text-sm" : "flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm"; }
         function executeTransfer() { const w = document.getElementById('transfer-week-select').value; gradingData.forEach(d => { const s = db.students.find(x => x.id === d.id); if (!s.weeks[w]) s.weeks[w] = { homework: '미제출', exam1: 0, exam2: 0, incorrect: '' }; s.weeks[w][transferTarget] = d.score; }); saveDB(); closeTransferModal(); renderTable(); showToast("시험 점수 전송 완료"); }
+
         function exportBackupJSON() { syncActiveInputs(); const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `SmartAcademy_Backup_${new Date().toISOString().slice(0, 10)}.json`; a.click(); }
         function triggerImportBackupJSON() { const i = document.getElementById('backup-file-input'); i.onchange = e => { const f = e.target.files[0]; const r = new FileReader(); r.onload = ev => { db = JSON.parse(ev.target.result); normalizeDB(); saveDBImmediate(); renderClassSelection(); showToast("백업 불러오기 완료"); }; r.readAsText(f); }; i.click(); }
         function triggerResetData() { openConfirm("초기화", "모든 데이터가 삭제됩니다. 계속하시겠습니까?", () => { localStorage.clear(); location.reload(); }); }
         function editClass(id, e) { e.stopPropagation(); openClassModal(id); }
-        function addNewStudent() { syncActiveInputs(); db.students.push({ id: getUUID(), classId: currentClassId, name: '새 학생', studentPhone: '', parentPhone: '', phone: '', withdrawn: false, withdrawnAt: 0, weeks: {}, mock: { june: 0, sept: 0 }, notes: '' }); saveDB(); renderTable(); }
+
+        function addNewStudent() {
+            syncActiveInputs();
+            db.students.push({ id: getUUID(), classId: currentClassId, name: '새 학생', studentPhone: '', parentPhone: '', phone: '', withdrawn: false, withdrawnAt: 0, weeks: {}, mock: { june: 0, sept: 0 }, notes: '' });
+            saveDB();
+            renderTable();
+        }
 
         window.onload = () => {
             loadDB();
             renderClassSelection();
             lucide.createIcons();
+
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('.state-tag')) document.getElementById('hw-selector-menu').style.display = 'none';
-                if (!e.target.closest('#ppurio-menu') && !e.target.closest('[onclick*="openPpurioMenu"]')) document.getElementById('ppurio-menu').style.display = 'none';
+                const hwMenu = document.getElementById('hw-selector-menu');
+
+                // ✅ 수정: 메뉴 자체/개별 state-tag/일괄버튼 클릭이면 닫지 않음 (버튼 눌러도 “아무 반응 없음” 해결)
+                if (
+                    hwMenu &&
+                    !e.target.closest('#hw-selector-menu') &&
+                    !e.target.closest('.state-tag') &&
+                    !e.target.closest('#bulk-hw-btn')
+                ) {
+                    hwMenu.style.display = 'none';
+                }
+
+                if (!e.target.closest('#ppurio-menu') && !e.target.closest('[onclick*="openPpurioMenu"]')) {
+                    document.getElementById('ppurio-menu').style.display = 'none';
+                }
             });
+
             document.addEventListener('keydown', e => {
-                if ((e.ctrlKey || e.metaKey) && e.key === ';') { e.preventDefault(); const v = document.getElementById('content-withdrawn').classList.contains('hidden'); switchTab(v ? 'withdrawn' : 'students'); }
+                if ((e.ctrlKey || e.metaKey) && e.key === ';') {
+                    e.preventDefault();
+                    const v = document.getElementById('content-withdrawn').classList.contains('hidden');
+                    switchTab(v ? 'withdrawn' : 'students');
+                }
             });
         };
 
@@ -1191,8 +1444,6 @@
             renderTable();
             showToast(`가져오기 완료 (신규 ${created} / 업데이트 ${updated})`);
         }
-
-
     </script>
 </body>
 
